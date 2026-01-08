@@ -1,73 +1,39 @@
-# React + TypeScript + Vite
+# Gadoapp Web (Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação Web Progressiva (PWA) para gestão de gado, focada em funcionamento Offline-First.
 
-Currently, two official plugins are available:
+## 🚀 Tecnologias
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React + TypeScript** (Vite)
+- **TailwindCSS** (Estilização)
+- **Axios** (Comunicação HTTP)
+- **Dexie.js** (Banco de Dados Local / IndexedDB)
+- **Context API** (Gerenciamento de Estado Global)
 
-## React Compiler
+## ⚙️ Como Rodar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. **Instalar dependências:**
+   ```bash
+   npm install
+   ```
 
-## Expanding the ESLint configuration
+2. **Rodar em desenvolvimento:**
+   ```bash
+   npm run dev
+   ```
+   Acesse: `http://localhost:5173`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 📱 Funcionalidades
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- **Autenticação:** Login e Cadastro integrados com a API Java.
+- **Gestão de Rebanhos:** Criar, Listar, Editar e Excluir (CRUD).
+- **Offline-First (Em desenvolvimento):**
+  - Os dados são salvos localmente no IndexedDB.
+  - Sincronização automática com o servidor quando houver internet.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🎨 Estrutura de Pastas
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `src/pages`: Telas do sistema (Login, Herds, etc).
+- `src/contexts`: Estados globais (AuthContext).
+- `src/lib`: Configurações de bibliotecas (Axios).
+- `src/db`: Configuração do banco local (Dexie).
