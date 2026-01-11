@@ -1,36 +1,25 @@
-import { useEffect, useState } from 'react';
-import { api } from '../lib/axios';
+import { useState } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../db/db';
 import { useAuth } from '../contexts/AuthContext';
+import { SyncIndicator } from '../components/SyncIndicator';
 import { Plus, Trash2, Pencil, X, LogOut } from 'lucide-react';
 
-interface Herd {
-  id: number;
+interface LocalHerd {
+  id?: number;
   name: string;
   active: boolean;
+  syncStatus: string;
 }
 
 export function Herds() {
-  const [herds, setHerds] = useState<Herd[]>([]);
-  const [nameInput, setNameInput] = useState('');
-  const [editingId, setEditingId] = useState<number | null>(null); // Se tiver ID, está editando
-  const [loading, setLoading] = useState(true);
+  const herds = useLiveQuery(() => 
+    db.herds.filter(h => h.active !== false).toArray()
+  );
   
+  const [nameInput, setNameInput] = useState('');
+  const [editingId, setEditingId] = useState<number | null>(null);
   const { logout } = useAuth();
-
-  async function fetchHerds() {
-    try {
-      const response = await api.get('/herds');
-      setHerds(response.data);
-    } catch (error) {
-      console.error('Erro ao buscar:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchHerds();
-  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,27 +27,50 @@ export function Herds() {
 
     try {
       if (editingId) {
-        // Modo Edição
-        await api.put(`/herds/${editingId}`, { name: nameInput });
+        // Edição Local
+        await db.herds.update(editingId, {
+          name: nameInput,
+          syncStatus: 'updated',
+          updatedAt: new Date().toISOString()
+        });
       } else {
-        // Modo Criação
-        await api.post('/herds', { name: nameInput });
+        // Criação Local
+        await db.herds.add({
+          name: nameInput,
+          active: true,
+          syncStatus: 'created',
+          updatedAt: new Date().toISOString()
+        });
       }
       
-      // Limpa e recarrega
       setNameInput('');
       setEditingId(null);
-      fetchHerds();
     } catch (error) {
-      alert('Erro ao salvar rebanho');
+      console.error("Erro ao salvar no Dexie:", error);
+      alert("Erro ao salvar localmente.");
     }
   }
 
-  function startEditing(herd: Herd) {
-    setEditingId(herd.id);
-    setNameInput(herd.name);
-    // Foca no input (opcional, melhor UX)
-    document.getElementById('herdInput')?.focus();
+  async function handleDelete(id: number) {
+    if (!confirm('Tem certeza?')) return;
+    
+    try {
+      // Soft Delete Local
+      await db.herds.update(id, {
+        active: false,
+        syncStatus: 'deleted',
+        updatedAt: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+    }
+  }
+
+  function startEditing(herd: LocalHerd) {
+    if (herd.id) {
+      setEditingId(herd.id);
+      setNameInput(herd.name);
+    }
   }
 
   function cancelEditing() {
@@ -66,18 +78,8 @@ export function Herds() {
     setNameInput('');
   }
 
-  async function handleDelete(id: number) {
-    if (!confirm('Tem certeza? Os bois deste rebanho também serão ocultados.')) return;
-    try {
-      await api.delete(`/herds/${id}`);
-      fetchHerds();
-    } catch (error) {
-      alert('Erro ao deletar');
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans pb-20">
       <div className="max-w-3xl mx-auto">
         
         {/* Header */}
@@ -141,8 +143,8 @@ export function Herds() {
           </form>
         </div>
 
-        {/* Lista */}
-        {loading ? (
+        {/* Lista vinda do Dexie */}
+        {!herds ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
@@ -168,9 +170,16 @@ export function Herds() {
                       {herd.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-800 text-lg">{herd.name}</h3>
+                      <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
+                        {herd.name}
+                        {herd.syncStatus !== 'synced' && (
+                          <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full border border-orange-200">
+                            Pendente
+                          </span>
+                        )}
+                      </h3>
                       <p className="text-xs text-gray-400">
-                        {herd.active ? 'Ativo' : 'Inativo'} • Atualizado recentemente
+                        {herd.active ? 'Ativo' : 'Inativo'}
                       </p>
                     </div>
                   </div>
@@ -184,7 +193,7 @@ export function Herds() {
                       <Pencil size={18} />
                     </button>
                     <button 
-                      onClick={() => handleDelete(herd.id)}
+                      onClick={() => herd.id && handleDelete(herd.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Excluir"
                     >
@@ -197,6 +206,9 @@ export function Herds() {
           </div>
         )}
       </div>
+      
+      {/* Indicador Flutuante */}
+      <SyncIndicator />
     </div>
   );
 }
