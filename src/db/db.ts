@@ -36,7 +36,7 @@ export class GadoAppDB extends Dexie {
     super('GadoappDB');
     
     this.version(1).stores({
-      herds: '++id, serverId, syncStatus, active', 
+      herds: '++id, serverId, syncStatus, active, name', 
       bovines: '++id, serverId, herdId, syncStatus, active'
     });
   }

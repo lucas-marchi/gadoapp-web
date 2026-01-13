@@ -11,3 +11,18 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+
+    if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+      console.warn('Token expirado ou inválido. Deslogando...');
+      
+      localStorage.removeItem('gadoapp_token');
+      
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
