@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import { db } from '../db/db';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -10,7 +11,6 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Lazy Initialization: Lê o localStorage apenas uma vez na inicialização
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem('gadoapp_token');
     return !!token;
@@ -23,9 +23,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsAuthenticated(true);
   };
 
-  const logout = () => {
+  const logout = async () => {
     localStorage.removeItem('gadoapp_token');
+    localStorage.removeItem('last_sync_herds');
+    localStorage.removeItem('last_sync_bovines');
+    
+    await db.herds.clear();
+    await db.bovines.clear();
+    
     setIsAuthenticated(false);
+    window.location.href = '/login'; 
   };
 
   return (
@@ -35,5 +42,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);
