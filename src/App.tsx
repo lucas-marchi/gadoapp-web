@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Login } from './pages/Login';
 import { Herds } from './pages/Herds';
 import { useAuth } from './contexts/AuthContext';
@@ -14,17 +15,20 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
 
 function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route 
-        path="/" 
-        element={
-          <PrivateRoute>
-            <Herds />
-          </PrivateRoute>
-        } 
-      />
-    </Routes>
+    <>
+      <Toaster position="top-center" richColors />
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/" 
+          element={
+            <PrivateRoute>
+              <Herds />
+            </PrivateRoute>
+          } 
+        />
+      </Routes>
+    </>
   );
 }
 
