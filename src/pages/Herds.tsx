@@ -3,10 +3,10 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/db';
 import { useAuth } from '../contexts/AuthContext';
 import { SyncIndicator } from '../components/SyncIndicator';
-import { useSync } from '../hooks/useSync'; // <--- Importado
-import { Plus, Trash2, Pencil, X, LogOut } from 'lucide-react';
+import { useSync } from '../hooks/useSync';
+import { useTheme } from '../hooks/useTheme';
+import { Plus, Trash2, Pencil, X, LogOut, MoreVertical, ChevronRight, Moon, Sun } from 'lucide-react';
 
-// Interface para tipagem do objeto vindo do Dexie
 interface LocalHerd {
   id?: number;
   name: string;
@@ -15,24 +15,38 @@ interface LocalHerd {
 }
 
 export function Herds() {
-  // Hook de Sync para disparar atualizações automáticas
-  const { syncNow } = useSync(); // <--- Hook instanciado
-
-  // Lê do banco local em tempo real!
-  const herds = useLiveQuery(() => 
-    db.herds.filter(h => h.active !== false).toArray()
-  );
+  const { syncNow } = useSync();
+  const { theme, toggleTheme } = useTheme();
+  const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
   
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedHerdId, setSelectedHerdId] = useState<number | null>(null); // Para menu mobile
+  
   const { logout } = useAuth();
+
+  function openCreateModal() {
+    setEditingId(null);
+    setNameInput('');
+    setIsModalOpen(true);
+    setSelectedHerdId(null);
+  }
+
+  function openEditModal(herd: LocalHerd) {
+    if (herd.id) {
+      setEditingId(herd.id);
+      setNameInput(herd.name);
+      setIsModalOpen(true);
+      setSelectedHerdId(null); // Fecha menu
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nameInput.trim()) return;
 
     try {
-      // Validação de duplicidade local
       const existing = await db.herds
         .where('name').equals(nameInput.trim())
         .filter(h => h.active !== false)
@@ -44,14 +58,12 @@ export function Herds() {
       }
 
       if (editingId) {
-        // Edição Local
         await db.herds.update(editingId, {
           name: nameInput,
           syncStatus: 'updated',
           updatedAt: new Date().toISOString()
         });
       } else {
-        // Criação Local
         await db.herds.add({
           name: nameInput,
           active: true,
@@ -60,115 +72,60 @@ export function Herds() {
         });
       }
       
-      setNameInput('');
-      setEditingId(null);
-
-      // AUTO-SYNC: Tenta enviar imediatamente
+      setIsModalOpen(false);
       syncNow();
-
     } catch (error) {
-      console.error("Erro ao salvar no Dexie:", error);
-      alert("Erro ao salvar localmente.");
+      alert("Erro ao salvar.");
     }
   }
 
   async function handleDelete(id: number) {
     if (!confirm('Tem certeza?')) return;
-    
     try {
-      // Soft Delete Local
       await db.herds.update(id, {
         active: false,
         syncStatus: 'deleted',
         updatedAt: new Date().toISOString()
       });
-
-      // AUTO-SYNC: Tenta enviar imediatamente
+      setSelectedHerdId(null);
       syncNow();
-
     } catch (error) {
-      console.error("Erro ao deletar:", error);
+      console.error(error);
     }
-  }
-
-  function startEditing(herd: LocalHerd) {
-    if (herd.id) {
-      setEditingId(herd.id);
-      setNameInput(herd.name);
-    }
-  }
-
-  function cancelEditing() {
-    setEditingId(null);
-    setNameInput('');
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans pb-20">
-      <div className="max-w-3xl mx-auto">
-        
-        {/* Header */}
-        <header className="flex justify-between items-center mb-8 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
-              <img src="/vite.svg" alt="Logo" className="w-8 h-8" /> 
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">Meus Rebanhos</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-24 transition-colors duration-300">
+      
+      {/* --- HEADER --- */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+            <img src="/vite.svg" alt="Logo" className="w-5 h-5 brightness-0 invert" /> 
           </div>
-          <button 
-            onClick={logout}
-            className="text-gray-500 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg transition-all flex items-center gap-2 text-sm font-medium"
-          >
-            <LogOut size={18} />
-            Sair
-          </button>
-        </header>
-
-        {/* Formulário */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-8">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
-            {editingId ? 'Editar Rebanho' : 'Novo Rebanho'}
-          </h2>
-          
-          <form onSubmit={handleSubmit} className="flex gap-3">
-            <input
-              id="herdInput"
-              type="text"
-              placeholder="Ex: Gado de Leite, Pasto Norte..."
-              className="flex-1 p-3 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition-all"
-              value={nameInput}
-              onChange={e => setNameInput(e.target.value)}
-            />
-            
-            {editingId ? (
-              <>
-                <button 
-                  type="submit"
-                  className="bg-green-600 text-white px-6 rounded-lg hover:bg-green-700 font-medium transition-colors"
-                >
-                  Salvar
-                </button>
-                <button 
-                  type="button"
-                  onClick={cancelEditing}
-                  className="bg-gray-100 text-gray-600 px-4 rounded-lg hover:bg-gray-200 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </>
-            ) : (
-              <button 
-                type="submit"
-                className="bg-blue-600 text-white px-6 rounded-lg hover:bg-blue-700 flex items-center gap-2 font-medium transition-colors shadow-blue-200 shadow-lg"
-              >
-                <Plus size={20} />
-                Criar
-              </button>
-            )}
-          </form>
+          <h1 className="text-lg font-bold text-gray-800 dark:text-white">Meus Rebanhos</h1>
         </div>
+        
+        <div className="flex items-center gap-3">
+          <SyncIndicator />
+          
+          {/* Botão Dark Mode */}
+          <button 
+            onClick={toggleTheme} 
+            className="p-2 text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors"
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
 
-        {/* Lista */}
+          <button onClick={logout} className="text-gray-400 hover:text-red-600 p-1">
+            <LogOut size={20} />
+          </button>
+        </div>
+      </header>
+
+      <main className="max-w-3xl mx-auto p-4">
+        
+        {/* --- LISTA --- */}
         {!herds ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -176,64 +133,124 @@ export function Herds() {
         ) : (
           <div className="space-y-3">
             {herds.length === 0 ? (
-              <div className="text-center py-16 bg-white rounded-xl border border-dashed border-gray-300">
-                <p className="text-gray-400 mb-2">Você ainda não tem rebanhos.</p>
-                <p className="text-sm text-gray-400">Crie um acima para começar a gerenciar seu gado.</p>
+              <div className="text-center py-20 px-6">
+                <div className="bg-gray-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
+                  <Plus size={32} />
+                </div>
+                <h3 className="text-gray-900 dark:text-white font-medium mb-1">Nenhum rebanho</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Toque no botão + para começar.</p>
               </div>
             ) : (
               herds.map(herd => (
-                <div 
-                  key={herd.id} 
-                  className={`group bg-white p-5 rounded-xl border transition-all duration-200 flex justify-between items-center
-                    ${editingId === herd.id ? 'border-blue-500 ring-1 ring-blue-500 shadow-md' : 'border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200'}
-                  `}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold
-                      ${editingId === herd.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500 group-hover:bg-blue-50 group-hover:text-blue-600'}
-                    `}>
-                      {herd.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-800 text-lg flex items-center gap-2">
-                        {herd.name}
-                        {herd.syncStatus !== 'synced' && (
-                          <span className="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full border border-orange-200">
-                            Pendente
-                          </span>
-                        )}
-                      </h3>
-                      <p className="text-xs text-gray-400">
-                        {herd.active ? 'Ativo' : 'Inativo'}
-                      </p>
+                <div key={herd.id} className="relative">
+                  {/* Card Principal */}
+                  <div 
+                    onClick={() => setSelectedHerdId(selectedHerdId === herd.id ? null : herd.id ?? null)}
+                    className={`
+                      bg-white dark:bg-gray-800 p-4 rounded-xl border transition-all active:scale-[0.98] cursor-pointer
+                      ${selectedHerdId === herd.id 
+                        ? 'border-blue-500 ring-1 ring-blue-500 shadow-md dark:border-blue-400 dark:ring-blue-400' 
+                        : 'border-gray-100 dark:border-gray-700 shadow-sm'}
+                    `}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xl font-bold">
+                          {herd.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-white text-lg leading-tight">
+                            {herd.name}
+                          </h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            {herd.syncStatus !== 'synced' && (
+                              <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full font-medium">
+                                Pendente
+                              </span>
+                            )}
+                            <span className="text-xs text-gray-400 dark:text-gray-500">0 cabeças</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <ChevronRight 
+                        size={20} 
+                        className={`text-gray-300 dark:text-gray-600 transition-transform ${selectedHerdId === herd.id ? 'rotate-90' : ''}`} 
+                      />
                     </div>
                   </div>
 
-                  <div className="flex gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button 
-                      onClick={() => startEditing(herd)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Editar"
-                    >
-                      <Pencil size={18} />
-                    </button>
-                    <button 
-                      onClick={() => herd.id && handleDelete(herd.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                  {/* Menu de Ações */}
+                  {selectedHerdId === herd.id && (
+                    <div className="mt-2 flex gap-2 animate-in slide-in-from-top-2 fade-in duration-200">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); openEditModal(herd); }}
+                        className="flex-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 py-3 rounded-lg font-medium flex items-center justify-center gap-2 active:bg-blue-100 dark:active:bg-blue-900/40"
+                      >
+                        <Pencil size={18} /> Editar
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); herd.id && handleDelete(herd.id); }}
+                        className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 py-3 rounded-lg font-medium flex items-center justify-center gap-2 active:bg-red-100 dark:active:bg-red-900/40"
+                      >
+                        <Trash2 size={18} /> Excluir
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             )}
           </div>
         )}
-      </div>
-      
-      {/* Indicador Flutuante */}
-      <SyncIndicator />
+      </main>
+
+      {/* --- FAB --- */}
+      <button
+        onClick={openCreateModal}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
+      >
+        <Plus size={28} />
+      </button>
+
+      {/* --- MODAL --- */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
+          <div 
+            className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setIsModalOpen(false)}
+          />
+          
+          <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                {editingId ? 'Editar Rebanho' : 'Novo Rebanho'}
+              </h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400">
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nome do Rebanho</label>
+              <input
+                autoFocus
+                type="text"
+                placeholder="Ex: Gado de Leite"
+                className="w-full p-4 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none mb-6 placeholder-gray-400 dark:placeholder-gray-500"
+                value={nameInput}
+                onChange={e => setNameInput(e.target.value)}
+              />
+              
+              <button 
+                type="submit"
+                className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 dark:shadow-none active:scale-[0.98] transition-transform"
+              >
+                Salvar
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
