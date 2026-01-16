@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
-import { useSync } from '../useSync';
 import { toast } from 'sonner';
+import { useSync } from '../../contexts/SyncContext';
 
 export function useHerdsController() {
   const { syncNow } = useSync();

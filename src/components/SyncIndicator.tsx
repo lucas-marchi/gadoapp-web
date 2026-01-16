@@ -1,5 +1,5 @@
 import { Cloud, CloudOff, RefreshCw, CheckCircle2 } from 'lucide-react';
-import { useSync } from '../hooks/useSync';
+import { useSync } from '../contexts/SyncContext';
 
 export function SyncIndicator() {
   const { isOnline, isSyncing, pendingCount, syncNow } = useSync();

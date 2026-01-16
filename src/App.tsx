@@ -3,6 +3,7 @@ import { Toaster } from 'sonner';
 import { Login } from './pages/Login';
 import { Herds } from './pages/Herds';
 import { useAuth } from './contexts/AuthContext';
+import { SyncProvider } from './contexts/SyncContext';
 import type { JSX } from 'react';
 
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -10,7 +11,11 @@ function PrivateRoute({ children }: { children: JSX.Element }) {
   
   if (isLoading) return <div className="flex h-screen items-center justify-center">Carregando...</div>;
   
-  return isAuthenticated ? children : <Navigate to="/login" />;
+  return isAuthenticated ? (
+    <SyncProvider> {/* <--- Envolver as rotas privadas aqui */}
+      {children}
+    </SyncProvider>
+  ) : <Navigate to="/login" />;
 }
 
 function App() {
