@@ -1,7 +1,8 @@
 import { useAuth } from '../contexts/AuthContext';
 import { SyncIndicator } from '../components/SyncIndicator';
 import { useTheme } from '../hooks/useTheme';
-import { useHerdsController } from '../hooks/controllers/useHerdsController'; // <--- Novo Hook
+import { useHerdsController } from '../hooks/controllers/useHerdsController';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { Plus, Trash2, Pencil, X, LogOut, ChevronRight, Moon, Sun } from 'lucide-react';
 
 export function Herds() {
@@ -20,7 +21,11 @@ export function Herds() {
     openCreateModal,
     openEditModal,
     saveHerd,
-    deleteHerd
+    deleteModalOpen,
+    setDeleteModalOpen,
+    requestDelete,
+    confirmDelete,
+    herdToDelete
   } = useHerdsController();
 
   return (
@@ -107,7 +112,7 @@ export function Herds() {
                       <button 
                         onClick={(e) => { 
                           e.stopPropagation(); 
-                          if(confirm('Tem certeza?')) herd.id && deleteHerd(herd.id); 
+                          if(herd.id) requestDelete(herd.id, herd.name);
                         }}
                         className="flex-1 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 py-3 rounded-lg font-medium flex items-center justify-center gap-2 active:bg-red-100 dark:active:bg-red-900/40"
                       >
@@ -129,6 +134,7 @@ export function Herds() {
         <Plus size={28} />
       </button>
 
+      {/* MODAL DE CRIAÇÃO/EDIÇÃO */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
           <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)} />
@@ -159,6 +165,18 @@ export function Herds() {
           </div>
         </div>
       )}
+
+      {/* MODAL DE CONFIRMAÇÃO */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Excluir Rebanho?"
+        message="Esta ação não pode ser desfeita. Todos os bovinos deste rebanho também serão ocultados."
+        confirmText="Sim, excluir"
+        isDangerous
+        confirmKeyword={herdToDelete?.name}
+      />
     </div>
   );
 }

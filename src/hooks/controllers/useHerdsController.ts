@@ -6,12 +6,16 @@ import { useSync } from '../../contexts/SyncContext';
 
 export function useHerdsController() {
   const { syncNow } = useSync();
+  
   const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [nameInput, setNameInput] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedHerdId, setSelectedHerdId] = useState<number | null>(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [herdToDelete, setHerdToDelete] = useState<{ id: number; name: string } | null>(null);
 
   function openCreateModal() {
     setEditingId(null);
@@ -65,7 +69,7 @@ export function useHerdsController() {
       }
       
       setIsModalOpen(false);
-      syncNow(); // Auto-sync
+      syncNow();
     } catch (error) {
       console.error(error);
       toast.error("Erro ao salvar localmente.");
@@ -73,7 +77,6 @@ export function useHerdsController() {
   }
 
   async function deleteHerd(id: number) {
-    // toast.promise para feedback visual
     toast.promise(
       async () => {
         await db.herds.update(id, {
@@ -92,6 +95,18 @@ export function useHerdsController() {
     );
   }
 
+  function requestDelete(id: number, name: string) {
+    setHerdToDelete({ id, name });
+    setDeleteModalOpen(true);
+    setSelectedHerdId(null);
+  }
+
+  function confirmDelete() {
+    if (herdToDelete) {
+      deleteHerd(herdToDelete.id);
+    }
+  }
+
   return {
     herds,
     isModalOpen,
@@ -104,6 +119,10 @@ export function useHerdsController() {
     openCreateModal,
     openEditModal,
     saveHerd,
-    deleteHerd
+    deleteModalOpen,
+    setDeleteModalOpen,
+    herdToDelete,
+    requestDelete,
+    confirmDelete
   };
 }
