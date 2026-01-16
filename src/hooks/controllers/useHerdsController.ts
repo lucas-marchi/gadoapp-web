@@ -3,19 +3,24 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
 import { toast } from 'sonner';
 import { useSync } from '../../contexts/SyncContext';
+import { useModals } from '../../contexts/ModalContext';
 
 export function useHerdsController() {
   const { syncNow } = useSync();
   
   const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { isHerdModalOpen, openHerdModal, closeHerdModal } = useModals();
+
   const [nameInput, setNameInput] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [selectedHerdId, setSelectedHerdId] = useState<number | null>(null);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [herdToDelete, setHerdToDelete] = useState<{ id: number; name: string } | null>(null);
+
+  const isModalOpen = isHerdModalOpen;
+  const setIsModalOpen = (open: boolean) => open ? openHerdModal() : closeHerdModal()
 
   function openCreateModal() {
     setEditingId(null);
