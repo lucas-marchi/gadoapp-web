@@ -88,17 +88,18 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 transition-colors duration-300">
-      <div className="w-full max-w-md bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700">
+    <div className="flex min-h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900 p-4 transition-colors duration-300">
+      <div className="w-full max-w-md bg-white dark:bg-neutral-800 p-8 rounded-2xl shadow-xl border border-neutral-100 dark:border-neutral-700">
         
         <div className="text-center mb-8">
-          <div className="bg-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-600/20">
-             <img src="/vite.svg" alt="Logo" className="w-6 h-6 brightness-0 invert" />
+          <div className="flex justify-center mx-auto mb-6">
+            <img src="/logo-dark.svg" alt="GadoApp" className="h-16 w-auto dark:hidden" />
+            <img src="/logo-light.svg" alt="GadoApp" className="h-16 w-auto hidden dark:block" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-2xl font-bold text-neutral-800 dark:text-white">
             {isRegister ? 'Crie sua conta' : 'Acesse o GadoApp'}
           </h2>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">
+          <p className="text-neutral-500 dark:text-neutral-400 text-sm mt-2">
             {isRegister ? 'Comece a gerenciar seu rebanho hoje.' : 'Gerencie seu gado de qualquer lugar.'}
           </p>
         </div>
@@ -106,11 +107,11 @@ export function Login() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {isRegister && (
             <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+              <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Nome</label>
               <input
                 type="text"
                 placeholder="Seu nome completo"
-                className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+                className="w-full p-3 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
                 value={name}
                 onChange={e => setName(e.target.value)}
               />
@@ -118,22 +119,22 @@ export function Login() {
           )}
           
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Email</label>
             <input
               type="email"
               placeholder="exemplo@email.com"
-              className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+              className="w-full p-3 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
               value={email}
               onChange={e => setEmail(e.target.value)}
             />
           </div>
           
           <div className="space-y-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Senha</label>
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all dark:text-white"
+              className="w-full p-3 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all dark:text-white"
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
@@ -142,7 +143,7 @@ export function Login() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-none hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6"
+            className="w-full bg-primary-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-primary-200 dark:shadow-none hover:bg-primary-700 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed mt-6"
           >
             {isLoading ? (
               <>
@@ -164,7 +165,7 @@ export function Login() {
               setEmail('');
               setPassword('');
             }}
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline transition-colors"
+            className="text-sm text-primary-600 hover:text-primary-700 font-medium hover:underline transition-colors"
           >
             {isRegister ? 'Já tenho uma conta' : 'Não tem conta? Cadastre-se'}
           </button>

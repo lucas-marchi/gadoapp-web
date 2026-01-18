@@ -8,26 +8,26 @@ export function SyncIndicator() {
   let statusText = "Online";
   let actionText = "Atualizar";
   let baseClass =
-    "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-blue-300 hover:text-blue-600 dark:hover:text-blue-400";
+    "bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700 hover:border-primary-300 hover:text-primary-600 dark:hover:text-primary-400";
 
   if (!isOnline) {
     icon = <CloudOff size={16} />;
     statusText = "Offline";
     actionText = "";
     baseClass =
-      "bg-gray-50 dark:bg-gray-900 text-gray-400 border-gray-200 dark:border-gray-800 cursor-not-allowed";
+      "bg-neutral-50 dark:bg-neutral-900 text-neutral-400 border-neutral-200 dark:border-neutral-800 cursor-not-allowed";
   } else if (isSyncing) {
     icon = <RefreshCw className="animate-spin" size={16} />;
     statusText = "Sincronizando...";
     actionText = "";
     baseClass =
-      "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 cursor-wait";
+      "bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 border-primary-200 dark:border-primary-800 cursor-wait";
   } else if (pendingCount > 0) {
-    icon = <UploadCloud size={16} className="text-orange-500" />;
+    icon = <UploadCloud size={16} className="text-warning-500" />;
     statusText = `${pendingCount} pendente(s)`;
     actionText = "Sincronizar";
     baseClass =
-      "bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800 hover:bg-orange-100 hover:border-orange-300";
+      "bg-warning-50 dark:bg-warning-900/20 text-warning-700 dark:text-warning-400 border-warning-200 dark:border-warning-800 hover:bg-warning-100 hover:border-warning-300";
   }
 
   return (

@@ -10,7 +10,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <SyncProvider>
       <ModalProvider>
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
           <Sidebar />
           <div className="md:pl-64 transition-all duration-300">
             <div className="pb-24 md:pb-8">

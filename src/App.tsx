@@ -10,7 +10,7 @@ import type { JSX } from 'react';
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const { isAuthenticated, isLoading } = useAuth();
   
-  if (isLoading) return <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-500">Carregando...</div>;
+  if (isLoading) return <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900 text-neutral-500">Carregando...</div>;
   
   return isAuthenticated ? (
     <AppLayout>

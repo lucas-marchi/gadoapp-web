@@ -36,18 +36,23 @@ export function Bovines() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-24 transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
       {/* HEADER MOBILE */}
-      <header className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
+      <header className="md:hidden bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
         <div className="flex items-center gap-3">
-          <div className="bg-green-600 text-white p-1.5 rounded-lg">
+          <div className="w-10 h-10 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden p-1.5">
             <img
-              src="/vite.svg"
+              src="/logo-dark.svg"
               alt="Logo"
-              className="w-5 h-5 brightness-0 invert"
+              className="w-full h-full object-contain dark:hidden"
+            />
+            <img
+              src="/logo-light.svg"
+              alt="Logo"
+              className="w-full h-full object-contain hidden dark:block"
             />
           </div>
-          <h1 className="text-lg font-bold text-gray-800 dark:text-white">
+          <h1 className="text-lg font-bold text-neutral-800 dark:text-white">
             Meus Bovinos
           </h1>
         </div>
@@ -56,13 +61,13 @@ export function Bovines() {
           <SyncIndicator />
           <button
             onClick={toggleTheme}
-            className="p-2 text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors"
+            className="p-2 text-neutral-400 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-yellow-400 transition-colors"
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           <button
             onClick={logout}
-            className="text-gray-400 hover:text-red-600 p-1"
+            className="text-neutral-400 hover:text-danger-600 p-1"
           >
             <LogOut size={20} />
           </button>
@@ -71,7 +76,7 @@ export function Bovines() {
 
       {/* HEADER DESKTOP */}
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+        <h1 className="text-3xl font-bold text-neutral-800 dark:text-white">
           Meus Bovinos
         </h1>
         <SyncIndicator />
@@ -80,15 +85,15 @@ export function Bovines() {
       <main className="max-w-3xl mx-auto p-4">
         {/* BARRA DE FERRAMENTAS */}
         <div className="flex gap-2 mb-6">
-          <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 flex items-center px-4 py-3 shadow-sm">
-            <Search size={20} className="text-gray-400 mr-3" />
+          <div className="flex-1 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center px-4 py-3 shadow-sm">
+            <Search size={20} className="text-neutral-400 mr-3" />
             <input
               type="text"
               placeholder="Buscar por nome ou brinco..."
-              className="bg-transparent outline-none w-full text-gray-700 dark:text-white placeholder-gray-400"
+              className="bg-transparent outline-none w-full text-neutral-700 dark:text-white placeholder-neutral-400"
             />
           </div>
-          <button className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 shadow-sm">
+          <button className="bg-white dark:bg-neutral-800 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 shadow-sm">
             <Filter size={20} />
           </button>
         </div>
@@ -96,19 +101,19 @@ export function Bovines() {
         {/* LISTA */}
         {!bovines ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary-600"></div>
           </div>
         ) : (
           <div className="space-y-3">
             {bovines.length === 0 ? (
               <div className="text-center py-20 px-6">
-                <div className="bg-gray-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
+                <div className="bg-neutral-100 dark:bg-neutral-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-neutral-400 dark:text-neutral-500">
                   <Plus size={32} />
                 </div>
-                <h3 className="text-gray-900 dark:text-white font-medium mb-1">
+                <h3 className="text-neutral-900 dark:text-white font-medium mb-1">
                   Nenhum bovino
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">
                   Cadastre seus animais aqui.
                 </p>
               </div>
@@ -119,7 +124,7 @@ export function Bovines() {
                   title={bovine.name}
                   subtitle={
                     <div className="flex flex-wrap gap-2">
-                      <span className="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
+                      <span className="bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded text-neutral-600 dark:text-neutral-300">
                         {getHerdName(bovine.herdId)}
                       </span>
                       <span>{bovine.breed || "Sem raça"}</span>
@@ -130,8 +135,8 @@ export function Bovines() {
                   avatarChar={bovine.name.charAt(0)}
                   avatarColorClass={
                     bovine.gender === "MACHO"
-                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
+                      ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
+                      : "bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400"
                   }
                   status={bovine.syncStatus}
                   onEdit={() => openBovineModal(bovine.id, bovine)}
@@ -148,7 +153,7 @@ export function Bovines() {
       {/* FAB (Mobile) */}
       <button
         onClick={() => openBovineModal()}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-green-600 hover:bg-green-500 text-white rounded-full shadow-lg shadow-green-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
       >
         <Plus size={28} />
       </button>

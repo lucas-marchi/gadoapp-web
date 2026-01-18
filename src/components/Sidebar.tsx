@@ -29,7 +29,7 @@ export function Sidebar() {
       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
         isActive(to)
           ? `bg-${colorClass}-50 text-${colorClass}-600 dark:bg-${colorClass}-900/20 dark:text-${colorClass}-400 font-medium`
-          : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+          : "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
       }`}
     >
       <Icon size={22} />
@@ -38,26 +38,32 @@ export function Sidebar() {
   );
 
   return (
-    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-6 z-50">
+    <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 p-6 z-50">
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-10 px-2">
-        <div className="bg-blue-600 text-white p-2 rounded-lg shadow-lg shadow-blue-600/20">
+      <div className="flex flex-col items-center justify-center mb-10 pt-2">
+        <div className="w-40 h-40 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden p-6 mb-3">
           <img
-            src="/vite.svg"
+            src="/logo-dark.svg"
             alt="Logo"
-            className="w-6 h-6 brightness-0 invert"
+            className="w-full h-full object-contain dark:hidden"
+          />
+          <img
+            src="/logo-light.svg"
+            alt="Logo"
+            className="w-full h-full object-contain hidden dark:block"
           />
         </div>
-        <h1 className="text-xl font-bold text-gray-800 dark:text-white tracking-tight">
-          GadoApp
-        </h1>
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-neutral-800 dark:text-white">GadoApp</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">Seu manejo bovino</p>
+        </div>
       </div>
 
       {/* BOTÃO NOVO (Dropdown) */}
       <div className="px-2 mb-6 relative">
         <button
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-none flex items-center justify-between transition-all active:scale-[0.98]"
+          className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 px-4 rounded-xl font-bold shadow-lg shadow-primary-200 dark:shadow-none flex items-center justify-between transition-all active:scale-[0.98]"
         >
           <div className="flex items-center gap-2">
             <Plus size={20} />
@@ -71,15 +77,15 @@ export function Sidebar() {
 
         {/* Menu Dropdown */}
         {isMenuOpen && (
-          <div className="absolute top-full left-2 right-2 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
+          <div className="absolute top-full left-2 right-2 mt-2 bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-100 dark:border-neutral-700 overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
             <button
               onClick={() => {
                 openHerdModal();
                 setIsMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3 text-gray-700 dark:text-gray-200 transition-colors"
+              className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-700 dark:text-neutral-200 transition-colors"
             >
-              <Layers size={18} className="text-blue-500" />
+              <Layers size={18} className="text-primary-500" />
               Rebanho
             </button>
             <button
@@ -87,18 +93,18 @@ export function Sidebar() {
                 openBovineModal();
                 setIsMenuOpen(false);
               }}
-              className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-3 text-gray-700 dark:text-gray-200 transition-colors border-t border-gray-100 dark:border-gray-700"
+              className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-700 dark:text-neutral-200 transition-colors border-t border-neutral-100 dark:border-neutral-700"
             >
-              <Beef size={18} className="text-green-500" />
+              <Beef size={18} className="text-secondary-500" />
               Bovino
             </button>
 
             {/* Futuro: Lote */}
             <button
               disabled
-              className="w-full text-left px-4 py-3 flex items-center gap-3 text-gray-400 cursor-not-allowed border-t border-gray-100 dark:border-gray-700"
+              className="w-full text-left px-4 py-3 flex items-center gap-3 text-neutral-400 cursor-not-allowed border-t border-neutral-100 dark:border-neutral-700"
             >
-              <span className="text-xs font-bold border border-gray-200 rounded px-1">
+              <span className="text-xs font-bold border border-neutral-200 rounded px-1">
                 EM BREVE
               </span>
               Lote
@@ -108,26 +114,26 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 space-y-2">
-        {/* REBANHOS (Azul) */}
+        {/* REBANHOS (Azul -> Primary) */}
         <Link
           to="/"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
             isActive("/")
-              ? "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400 font-medium"
-              : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+              ? "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 font-medium"
+              : "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
           }`}
         >
           <Layers size={22} />
           <span>Rebanhos</span>
         </Link>
 
-        {/* BOVINOS (Verde) */}
+        {/* BOVINOS (Verde -> Secondary) */}
         <Link
           to="/bovines"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
             isActive("/bovines")
-              ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 font-medium"
-              : "text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+              ? "bg-secondary-50 text-secondary-600 dark:bg-secondary-900/20 dark:text-secondary-400 font-medium"
+              : "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800"
           }`}
         >
           <Beef size={22} />
@@ -136,10 +142,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer da Sidebar */}
-      <div className="pt-6 border-t border-gray-100 dark:border-gray-700 space-y-2">
+      <div className="pt-6 border-t border-neutral-100 dark:border-neutral-700 space-y-2">
         <button
           onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800 transition-colors"
         >
           {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           <span>{theme === "dark" ? "Modo Claro" : "Modo Escuro"}</span>
@@ -147,7 +153,7 @@ export function Sidebar() {
 
         <button
           onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
         >
           <LogOut size={20} />
           <span>Sair</span>

@@ -7,11 +7,98 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+@layer base {
+  :root {
+    /* Primary Scale (Olive Green - Base #839201) */
+    /* Mapped from Blue: Used for main actions, active states, and Rebanhos */
+    --color-primary-50: 249 252 235;
+    --color-primary-100: 239 248 206;
+    --color-primary-200: 224 242 163;
+    --color-primary-300: 204 232 110;
+    --color-primary-400: 185 219 50;
+    --color-primary-500: 158 194 13;
+    --color-primary-600: 131 146 1;  /* #839201 */
+    --color-primary-700: 101 114 4;
+    --color-primary-800: 82 91 10;
+    --color-primary-900: 68 76 14;
+    --color-primary-950: 36 41 3;
+
+    /* Secondary Scale (Gold/Yellow - Base #FED403) */
+    /* Mapped from Green: Used for Bovines */
+    /* Adjusted 600+ to be darker for readability on light backgrounds */
+    --color-secondary-50: 255 253 235;
+    --color-secondary-100: 255 249 205;
+    --color-secondary-200: 255 242 160;
+    --color-secondary-300: 255 230 100;
+    --color-secondary-400: 254 212 3;   /* #FED403 */
+    --color-secondary-500: 235 189 0;
+    --color-secondary-600: 203 152 2;   /* #CBB802 (Darker for text) */
+    --color-secondary-700: 164 114 4;
+    --color-secondary-800: 138 92 10;
+    --color-secondary-900: 116 75 14;
+    --color-secondary-950: 66 40 4;
+
+    /* Neutral Scale (Dark Blue/Grey - Base #2A313B) */
+    /* Used for text, backgrounds, borders */
+    --color-neutral-50: 247 248 250;
+    --color-neutral-100: 236 238 241;
+    --color-neutral-200: 216 220 226;
+    --color-neutral-300: 185 192 201;
+    --color-neutral-400: 148 158 171;
+    --color-neutral-500: 115 127 143;
+    --color-neutral-600: 87 99 115;
+    --color-neutral-700: 64 74 88;
+    --color-neutral-800: 42 49 59;   /* #2A313B (Sidebar Dark Mode) */
+    --color-neutral-900: 33 38 46;
+    --color-neutral-950: 21 24 29;   /* Darker Page Background */
+
+    /* Danger Scale (Warm Red to match Gold/Olive) */
+    --color-danger-50: 255 241 242;
+    --color-danger-100: 255 228 230;
+    --color-danger-200: 254 205 211;
+    --color-danger-300: 253 164 175;
+    --color-danger-400: 251 113 133;
+    --color-danger-500: 244 63 94;
+    --color-danger-600: 225 29 72;
+    --color-danger-700: 190 18 60;
+    --color-danger-800: 159 18 57;
+    --color-danger-900: 136 19 55;
+    --color-danger-950: 76 5 25;
+
+    /* Warning Scale (Warm Orange) */
+    --color-warning-50: 255 247 237;
+    --color-warning-100: 255 237 213;
+    --color-warning-200: 254 215 170;
+    --color-warning-300: 253 186 116;
+    --color-warning-400: 251 146 60;
+    --color-warning-500: 249 115 22;
+    --color-warning-600: 234 88 12;
+    --color-warning-700: 194 65 12;
+    --color-warning-800: 154 52 18;
+    --color-warning-900: 124 45 18;
+    --color-warning-950: 67 20 7;
+
+    /* Accent Scale (Deep Rust/Copper) */
+    /* Replaces Pink - compliments the Olive/Gold theme */
+    --color-accent-50: 255 245 240;
+    --color-accent-100: 255 230 220;
+    --color-accent-200: 255 200 180;
+    --color-accent-300: 255 160 130;
+    --color-accent-400: 255 110 70;
+    --color-accent-500: 240 70 30;
+    --color-accent-600: 210 50 20;
+    --color-accent-700: 170 35 15;
+    --color-accent-800: 135 30 15;
+    --color-accent-900: 110 25 15;
+    --color-accent-950: 60 10 5;
+  }
+}
+
 @layer components {
   .input-field {
-    @apply w-full p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none transition-all placeholder-gray-400 dark:placeholder-gray-500;
+    @apply w-full p-3 bg-neutral-50 dark:bg-neutral-700 border border-neutral-200 dark:border-neutral-600 rounded-xl text-neutral-900 dark:text-white focus:ring-2 focus:ring-secondary-500 outline-none transition-all placeholder-neutral-400 dark:placeholder-neutral-500;
   }
   .label-text {
-    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
+    @apply block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1;
   }
 }

@@ -32,18 +32,23 @@ export function Herds() {
   } = useHerdsController();
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 font-sans pb-24 transition-colors duration-300">
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
       {/* HEADER MOBILE */}
-      <header className="md:hidden bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
+      <header className="md:hidden bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
         <div className="flex items-center gap-3">
-          <div className="bg-blue-600 text-white p-1.5 rounded-lg">
+          <div className="w-10 h-10 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden p-1.5">
             <img
-              src="/vite.svg"
+              src="/logo-dark.svg"
               alt="Logo"
-              className="w-5 h-5 brightness-0 invert"
+              className="w-full h-full object-contain dark:hidden"
+            />
+            <img
+              src="/logo-light.svg"
+              alt="Logo"
+              className="w-full h-full object-contain hidden dark:block"
             />
           </div>
-          <h1 className="text-lg font-bold text-gray-800 dark:text-white">
+          <h1 className="text-lg font-bold text-neutral-800 dark:text-white">
             Meus Rebanhos
           </h1>
         </div>
@@ -52,13 +57,13 @@ export function Herds() {
           <SyncIndicator />
           <button
             onClick={toggleTheme}
-            className="p-2 text-gray-400 hover:text-blue-600 dark:text-gray-400 dark:hover:text-yellow-400 transition-colors"
+            className="p-2 text-neutral-400 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-yellow-400 transition-colors"
           >
             {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           <button
             onClick={logout}
-            className="text-gray-400 hover:text-red-600 p-1"
+            className="text-neutral-400 hover:text-danger-600 p-1"
           >
             <LogOut size={20} />
           </button>
@@ -67,7 +72,7 @@ export function Herds() {
 
       {/* HEADER DESKTOP (Título) */}
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-white">
+        <h1 className="text-3xl font-bold text-neutral-800 dark:text-white">
           Meus Rebanhos
         </h1>
         <SyncIndicator />
@@ -76,19 +81,19 @@ export function Herds() {
       <main className="max-w-3xl mx-auto p-4">
         {!herds ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
           </div>
         ) : (
           <div className="space-y-3">
             {herds.length === 0 ? (
               <div className="text-center py-20 px-6">
-                <div className="bg-gray-100 dark:bg-gray-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400 dark:text-gray-500">
+                <div className="bg-neutral-100 dark:bg-neutral-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-neutral-400 dark:text-neutral-500">
                   <Plus size={32} />
                 </div>
-                <h3 className="text-gray-900 dark:text-white font-medium mb-1">
+                <h3 className="text-neutral-900 dark:text-white font-medium mb-1">
                   Nenhum rebanho
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 text-sm">
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">
                   Toque no botão + para começar.
                 </p>
               </div>
@@ -112,7 +117,7 @@ export function Herds() {
       {/* FAB (Apenas Mobile) */}
       <button
         onClick={() => openHerdModal()}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-500 text-white rounded-full shadow-lg shadow-blue-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
+        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary-600 hover:bg-primary-500 text-white rounded-full shadow-lg shadow-primary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
       >
         <Plus size={28} />
       </button>

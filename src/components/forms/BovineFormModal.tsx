@@ -113,14 +113,14 @@ export function BovineFormModal() {
         onClick={closeBovineModal}
       />
 
-      <div className="bg-white dark:bg-gray-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white dark:bg-neutral-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-xl font-bold text-neutral-800 dark:text-white">
             {bovineEditingId ? "Editar Bovino" : "Novo Bovino"}
           </h2>
           <button
             onClick={closeBovineModal}
-            className="p-2 bg-gray-100 dark:bg-gray-700 rounded-full text-gray-500 dark:text-gray-400"
+            className="p-2 bg-neutral-100 dark:bg-neutral-700 rounded-full text-neutral-500 dark:text-neutral-400"
           >
             <X size={20} />
           </button>
@@ -251,7 +251,7 @@ export function BovineFormModal() {
 
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-green-200 dark:shadow-none active:scale-[0.98] transition-transform mt-4"
+            className="w-full bg-secondary-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-secondary-200 dark:shadow-none active:scale-[0.98] transition-transform mt-4"
           >
             Salvar
           </button>
