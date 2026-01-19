@@ -53,10 +53,6 @@ export function Sidebar() {
             className="w-full h-full object-contain hidden dark:block"
           />
         </div>
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-neutral-800 dark:text-white">GadoApp</h2>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">Seu manejo bovino</p>
-        </div>
       </div>
 
       {/* BOTÃO NOVO (Dropdown) */}
@@ -158,6 +154,11 @@ export function Sidebar() {
           <LogOut size={20} />
           <span>Sair</span>
         </button>
+
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-neutral-800 dark:text-white">GadoApp</h2>
+          <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">Seu manejo bovino</p>
+        </div>
       </div>
     </aside>
   );
