@@ -135,7 +135,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
         // 2.1 PREPARAR DADOS (Vincular IDs)
         // Antes de enviar, garante que todo boi tenha o serverHerdId preenchido
-        // (Isso já deve ter sido feito no Pull Herds acima ou na criação se online, mas reforçamos)
         const bovinesWithoutServerHerd = await db.bovines
           .filter((b) => !b.serverHerdId && !!b.herdId)
           .toArray();
@@ -222,7 +221,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
               // 3. Tenta achar pelo (nome + rebanho) se não achou pelo ID
               const existingByName = !existing
                 ? await db.bovines
-                    .where("name") // Precisa indexar 'name' no db.ts!
+                    .where("name")
                     .equals(sb.name)
                     .filter((b) => !b.serverId) // Só pega se não tiver vínculo ainda
                     .first()
@@ -239,7 +238,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 weight: sb.weight,
                 birth: sb.birth,
                 description: sb.description,
-                herdId: localHerdId, // <--- Agora a variável existe
+                herdId: localHerdId,
                 serverHerdId: sb.herdId,
                 active: sb.active,
                 syncStatus: "synced" as const,

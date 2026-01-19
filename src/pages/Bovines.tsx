@@ -1,24 +1,16 @@
-import { useAuth } from "../contexts/AuthContext";
 import { SyncIndicator } from "../components/SyncIndicator";
-import { useTheme } from "../hooks/useTheme";
 import { useBovinesController } from "../hooks/controllers/useBovinesController";
 import { ConfirmModal } from "../components/ConfirmModal";
 import { useModals } from "../contexts/ModalContext";
 import {
   Plus,
-  Trash2,
-  Pencil,
-  LogOut,
-  Moon,
-  Sun,
   Search,
   Filter,
 } from "lucide-react";
 import { DataCard } from "../components/DataCard";
+import { MobileHeader } from "../components/MobileHeader";
 
 export function Bovines() {
-  const { theme, toggleTheme } = useTheme();
-  const { logout } = useAuth();
   const { openBovineModal } = useModals();
 
   const {
@@ -37,42 +29,8 @@ export function Bovines() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
-      {/* HEADER MOBILE */}
-      <header className="md:hidden bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-10 px-4 py-3 flex justify-between items-center shadow-sm transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden p-1.5">
-            <img
-              src="/logo-dark.svg"
-              alt="Logo"
-              className="w-full h-full object-contain dark:hidden"
-            />
-            <img
-              src="/logo-light.svg"
-              alt="Logo"
-              className="w-full h-full object-contain hidden dark:block"
-            />
-          </div>
-          <h1 className="text-lg font-bold text-neutral-800 dark:text-white">
-            Meus Bovinos
-          </h1>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <SyncIndicator />
-          <button
-            onClick={toggleTheme}
-            className="p-2 text-neutral-400 hover:text-primary-600 dark:text-neutral-400 dark:hover:text-yellow-400 transition-colors"
-          >
-            {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-          </button>
-          <button
-            onClick={logout}
-            className="text-neutral-400 hover:text-danger-600 p-1"
-          >
-            <LogOut size={20} />
-          </button>
-        </div>
-      </header>
+      
+      <MobileHeader title="Meus Bovinos" />
 
       {/* HEADER DESKTOP */}
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">

@@ -10,7 +10,6 @@
 @layer base {
   :root {
     /* Primary Scale (Olive Green - Base #839201) */
-    /* Mapped from Blue: Used for main actions, active states, and Rebanhos */
     --color-primary-50: 249 252 235;
     --color-primary-100: 239 248 206;
     --color-primary-200: 224 242 163;
@@ -24,8 +23,6 @@
     --color-primary-950: 36 41 3;
 
     /* Secondary Scale (Gold/Yellow - Base #FED403) */
-    /* Mapped from Green: Used for Bovines */
-    /* Adjusted 600+ to be darker for readability on light backgrounds */
     --color-secondary-50: 255 253 235;
     --color-secondary-100: 255 249 205;
     --color-secondary-200: 255 242 160;
@@ -79,7 +76,6 @@
     --color-warning-950: 67 20 7;
 
     /* Accent Scale (Deep Rust/Copper) */
-    /* Replaces Pink - compliments the Olive/Gold theme */
     --color-accent-50: 255 245 240;
     --color-accent-100: 255 230 220;
     --color-accent-200: 255 200 180;
