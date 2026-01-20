@@ -6,16 +6,112 @@ import { useSync } from "../../contexts/SyncContext";
 
 export function useBovinesController() {
   const { syncNow } = useSync();
+  const [moveModalOpen, setMoveModalOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    search: "",
+    herdId: "",
+    status: "",
+    gender: "",
+  });
 
   // 1. Listas Reativas (Dexie)
-  const bovines = useLiveQuery(() =>
-    db.bovines.filter((b) => b.active !== false).toArray()
-  );
+  // Query Filtrada
+  const bovines = useLiveQuery(async () => {
+    let collection = db.bovines.filter((b) => b.active !== false);
+
+    if (filters.herdId) {
+      const id = parseInt(filters.herdId);
+      collection = collection.filter((b) => b.herdId === id);
+    }
+
+    if (filters.status) {
+      collection = collection.filter((b) => b.status === filters.status);
+    }
+
+    if (filters.gender) {
+      collection = collection.filter((b) => b.gender === filters.gender);
+    }
+
+    if (filters.search) {
+      const lower = filters.search.toLowerCase();
+      collection = collection.filter(
+        (b) =>
+          b.name.toLowerCase().includes(lower) ||
+          (!!b.breed && b.breed.toLowerCase().includes(lower)),
+      );
+    }
+
+    return collection.toArray();
+  }, [filters]);
+
+  function openMoveModal() {
+    if (selectedIds.length === 0) return;
+    setMoveModalOpen(true);
+  }
+
+  async function confirmMove(targetHerdId: number) {
+    await batchMove(targetHerdId); // Já existe essa função
+    setMoveModalOpen(false);
+  }
 
   // Rebanhos ativos (para o Select)
   const herds = useLiveQuery(() =>
-    db.herds.filter((h) => h.active !== false).toArray()
+    db.herds.filter((h) => h.active !== false).toArray(),
   );
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+  function toggleSelection(id: number) {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id],
+    );
+  }
+
+  function selectAll() {
+    if (bovines && selectedIds.length === bovines.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(bovines?.map((b) => b.id!) || []);
+    }
+  }
+
+  function clearSelection() {
+    setSelectedIds([]);
+  }
+
+  // Ações em Lote
+  async function batchDelete() {
+    if (!confirm(`Excluir ${selectedIds.length} bois?`)) return;
+
+    await db.transaction("rw", db.bovines, async () => {
+      for (const id of selectedIds) {
+        await db.bovines.update(id, {
+          active: false,
+          syncStatus: "deleted",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+
+    setSelectedIds([]);
+    syncNow();
+    toast.success(`${selectedIds.length} bois excluídos`);
+  }
+
+  async function batchMove(targetHerdId: number) {
+    await db.transaction("rw", db.bovines, async () => {
+      for (const id of selectedIds) {
+        await db.bovines.update(id, {
+          herdId: targetHerdId,
+          syncStatus: "updated",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+    setSelectedIds([]);
+    syncNow();
+    toast.success(`${selectedIds.length} bois movidos`);
+  }
 
   // 2. Estados de UI
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -158,7 +254,7 @@ export function useBovinesController() {
           loading: "Excluindo...",
           success: "Bovino excluído",
           error: "Erro ao excluir",
-        }
+        },
       );
     }
   }
@@ -179,5 +275,17 @@ export function useBovinesController() {
     bovineToDelete,
     requestDelete,
     confirmDelete,
+    filters,
+    setFilters,
+    selectedIds,
+    toggleSelection,
+    selectAll,
+    batchDelete,
+    batchMove,
+    clearSelection,
+    moveModalOpen,
+    setMoveModalOpen,
+    openMoveModal,
+    confirmMove,
   };
 }

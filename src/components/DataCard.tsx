@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Pencil, Trash2, ChevronRight } from "lucide-react";
+import { Pencil, Trash2, ChevronRight, Check } from "lucide-react";
+import { useLongPress } from "../hooks/useLongPress";
 
 interface DataCardProps {
   title: string;
@@ -9,6 +10,10 @@ interface DataCardProps {
   status?: "synced" | "created" | "updated" | "deleted" | string;
   onEdit: () => void;
   onDelete: () => void;
+  selectable?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  onLongPress?: () => void;
 }
 
 export function DataCard({
@@ -19,34 +24,74 @@ export function DataCard({
   status,
   onEdit,
   onDelete,
+  selectable,
+  isSelected,
+  onSelect,
+  onLongPress,
 }: DataCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Verifica se está pendente
   const isPending = status && status !== "synced";
 
+  // Lógica unificada de clique (Curto vs Longo)
+  const handleInteraction = () => {
+    if (selectable && onSelect) {
+      onSelect();
+    } else {
+      setIsExpanded(!isExpanded);
+    }
+  };
+
+  const longPressProps = useLongPress(
+    // Callback Long Press
+    () => {
+      if (onLongPress) onLongPress();
+    },
+    // Callback Click Normal
+    handleInteraction,
+    { delay: 600 },
+  );
+
   return (
-    <div className="relative">
+    <div
+      className={`relative transition-colors duration-200 ${
+        isSelected ? "bg-primary-50/50 dark:bg-primary-900/10 rounded-xl" : ""
+      }`}
+    >
       {/* CARD PRINCIPAL */}
       <div
-        onClick={() => setIsExpanded(!isExpanded)}
+        {...longPressProps}
         className={`
-    group relative bg-white dark:bg-neutral-800 p-4 rounded-xl border transition-all duration-200 cursor-pointer
-    
-    /* Estados de Interação */
-    hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 hover:-translate-y-0.5
-    active:scale-[0.98] active:shadow-sm active:translate-y-0
+          group relative bg-white dark:bg-neutral-800 p-4 rounded-xl border transition-all duration-200 cursor-pointer select-none
+          
+          hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700 hover:-translate-y-0.5
+          active:scale-[0.98] active:shadow-sm active:translate-y-0
 
-    /* Estado Expandido */
-    ${
-      isExpanded
-        ? "border-primary-500 ring-1 ring-primary-500 shadow-md dark:border-primary-400 dark:ring-primary-400"
-        : "border-neutral-100 dark:border-neutral-700 shadow-sm"
-    }
-  `}
+          ${
+            isExpanded
+              ? "border-primary-500 ring-1 ring-primary-500 shadow-md dark:border-primary-400 dark:ring-primary-400"
+              : "border-neutral-200 dark:border-neutral-700 shadow-sm"
+          }
+        `}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
+            {/* CHECKBOX */}
+            {selectable && (
+              <div
+                className={`
+                  w-5 h-5 rounded border flex items-center justify-center transition-colors mr-2
+                  ${
+                    isSelected
+                      ? "bg-blue-600 border-blue-600 text-white"
+                      : "border-gray-300 dark:border-gray-600 hover:border-blue-400"
+                  }
+                `}
+              >
+                {isSelected && <Check size={14} strokeWidth={3} />}
+              </div>
+            )}
+
             {/* AVATAR */}
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold ${avatarColorClass}`}

@@ -1,14 +1,14 @@
-import { SyncIndicator } from "../components/SyncIndicator";
-import { useBovinesController } from "../hooks/controllers/useBovinesController";
-import { ConfirmModal } from "../components/ConfirmModal";
-import { useModals } from "../contexts/ModalContext";
-import {
-  Plus,
-  Search,
-  Filter,
-} from "lucide-react";
-import { DataCard } from "../components/DataCard";
-import { MobileHeader } from "../components/MobileHeader";
+import { useState, useEffect } from 'react';
+import { useModals } from '../contexts/ModalContext';
+import { useBovinesController } from '../hooks/controllers/useBovinesController';
+import { MobileHeader } from '../components/MobileHeader';
+import { SyncIndicator } from '../components/SyncIndicator';
+import { BovineFilters } from '../components/BovineFilters';
+import { DataCard } from '../components/DataCard';
+import { ConfirmModal } from '../components/ConfirmModal';
+import { BatchActionBar } from '../components/BatchActionBar';
+import { Plus, CheckSquare } from 'lucide-react';
+import { MoveBovinesModal } from '../components/modals/MoveBovinesModal';
 
 export function Bovines() {
   const { openBovineModal } = useModals();
@@ -21,7 +21,32 @@ export function Bovines() {
     bovineToDelete,
     requestDelete,
     confirmDelete,
+    filters,
+    setFilters,
+    selectedIds,
+    toggleSelection,
+    clearSelection,
+    batchDelete,
+    batchMove,
+    moveModalOpen,
+    setMoveModalOpen,
+    openMoveModal,
+    confirmMove
   } = useBovinesController();
+
+  // Modo de seleção
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  
+  // Sincroniza modo de seleção: Se selecionou algo, ativa o modo.
+  useEffect(() => {
+    if (selectedIds.length > 0) setIsSelectionMode(true);
+  }, [selectedIds]);
+
+  const handleLongPress = (id: number) => {
+    setIsSelectionMode(true);
+    toggleSelection(id);
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
 
   const getHerdName = (id?: number) => {
     return herds?.find((h) => h.id === id)?.name || "Sem Rebanho";
@@ -41,19 +66,30 @@ export function Bovines() {
       </div>
 
       <main className="max-w-3xl mx-auto p-4">
-        {/* BARRA DE FERRAMENTAS */}
-        <div className="flex gap-2 mb-6">
-          <div className="flex-1 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center px-4 py-3 shadow-sm">
-            <Search size={20} className="text-neutral-400 mr-3" />
-            <input
-              type="text"
-              placeholder="Buscar por nome ou brinco..."
-              className="bg-transparent outline-none w-full text-neutral-700 dark:text-white placeholder-neutral-400"
-            />
+        
+        {/* BARRA DE FERRAMENTAS (Filtros + Botão Seleção) */}
+        <div className="flex gap-2 mb-6 items-start">
+          <div className="flex-1">
+             <BovineFilters filters={filters} setFilters={setFilters} herds={herds} />
           </div>
-          <button className="bg-white dark:bg-neutral-800 p-3 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 shadow-sm">
-            <Filter size={20} />
-          </button>
+          
+          {/* Botão Modo Seleção (Desktop/Mobile Manual) */}
+          <button 
+             onClick={() => {
+               const newMode = !isSelectionMode;
+               setIsSelectionMode(newMode);
+               if (!newMode) clearSelection(); // Limpa ao sair do modo
+             }}
+             className={`
+               p-3 rounded-xl border shadow-sm transition-all h-[50px] w-[50px] flex items-center justify-center
+               ${isSelectionMode 
+                 ? 'bg-primary-50 border-primary-200 text-primary-600 dark:bg-primary-900/20 dark:border-primary-800 dark:text-primary-400' 
+                 : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'}
+             `}
+             title="Seleção em Lote"
+           >
+             <CheckSquare size={20} />
+           </button>
         </div>
 
         {/* LISTA */}
@@ -97,6 +133,13 @@ export function Bovines() {
                       : "bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400"
                   }
                   status={bovine.syncStatus}
+                  
+                  // PROPS DE SELEÇÃO (Adicionadas)
+                  selectable={isSelectionMode}
+                  isSelected={selectedIds.includes(bovine.id!)}
+                  onSelect={() => toggleSelection(bovine.id!)}
+                  onLongPress={() => handleLongPress(bovine.id!)}
+
                   onEdit={() => openBovineModal(bovine.id, bovine)}
                   onDelete={() =>
                     bovine.id && requestDelete(bovine.id, bovine.name)
@@ -108,13 +151,26 @@ export function Bovines() {
         )}
       </main>
 
-      {/* FAB (Mobile) */}
-      <button
-        onClick={() => openBovineModal()}
-        className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
-      >
-        <Plus size={28} />
-      </button>
+      {/* FAB (Mobile) - Esconde se estiver selecionando */}
+      {!isSelectionMode && (
+        <button
+            onClick={() => openBovineModal()}
+            className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
+        >
+            <Plus size={28} />
+        </button>
+      )}
+
+      {/* BARRA DE AÇÕES EM LOTE */}
+      <BatchActionBar 
+        count={selectedIds.length}
+        onClear={() => {
+            clearSelection(); // Limpa seleção
+            setIsSelectionMode(false); // Sai do modo
+        }}
+        onDelete={batchDelete}
+        onMove={openMoveModal}
+      />
 
       <ConfirmModal
         isOpen={deleteModalOpen}
@@ -125,6 +181,13 @@ export function Bovines() {
         confirmText="Excluir Bovino"
         isDangerous
         confirmKeyword={bovineToDelete?.name}
+      />
+
+        <MoveBovinesModal
+        isOpen={moveModalOpen}
+        onClose={() => setMoveModalOpen(false)}
+        onConfirm={confirmMove}
+        count={selectedIds.length}
       />
     </div>
   );
