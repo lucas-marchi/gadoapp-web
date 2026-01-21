@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useModals } from '../contexts/ModalContext';
 import { useBovinesController } from '../hooks/controllers/useBovinesController';
-import { MobileHeader } from '../components/MobileHeader';
-import { SyncIndicator } from '../components/SyncIndicator';
-import { BovineFilters } from '../components/BovineFilters';
-import { DataCard } from '../components/DataCard';
-import { ConfirmModal } from '../components/ConfirmModal';
-import { BatchActionBar } from '../components/BatchActionBar';
+import { MobileHeader } from '../components/layout/MobileHeader';
+import { SyncIndicator } from '../components/features/shared/SyncIndicator';
+import { BovineFilters } from '../components/features/bovines/BovineFilters';
+import { BatchActionBar } from '../components/features/shared/BatchActionBar';
 import { Plus, CheckSquare } from 'lucide-react';
-import { MoveBovinesModal } from '../components/modals/MoveBovinesModal';
+import { DataCard } from '../components/ui/DataCard';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { MoveBovinesModal } from '../components/features/bovines/MoveBovinesModal';
 
 export function Bovines() {
   const { openBovineModal } = useModals();
@@ -27,7 +27,6 @@ export function Bovines() {
     toggleSelection,
     clearSelection,
     batchDelete,
-    batchMove,
     moveModalOpen,
     setMoveModalOpen,
     openMoveModal,

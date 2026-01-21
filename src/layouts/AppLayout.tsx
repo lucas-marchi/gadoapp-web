@@ -1,10 +1,10 @@
-import { BottomNav } from '../components/BottomNav';
-import { Sidebar } from '../components/Sidebar';
+import { BottomNav } from '../components/layout/BottomNav';
 import { SyncProvider } from '../contexts/SyncContext';
 import { ModalProvider } from '../contexts/ModalContext';
-import { HerdFormModal } from '../components/forms/HerdFormModal';
-import { BovineFormModal } from '../components/forms/BovineFormModal';
+import { HerdFormModal } from '../components/features/herds/HerdFormModal';
+import { BovineFormModal } from '../components/features/bovines/BovineFormModal';
 import type { ReactNode } from 'react';
+import { Sidebar } from '../components/layout/Sidebar';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (

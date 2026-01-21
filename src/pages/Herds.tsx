@@ -1,12 +1,12 @@
-import { SyncIndicator } from "../components/SyncIndicator";
+import { SyncIndicator } from "../components/features/shared/SyncIndicator";
 import { useHerdsController } from "../hooks/controllers/useHerdsController";
-import { ConfirmModal } from "../components/ConfirmModal";
 import { useModals } from "../contexts/ModalContext";
 import {
   Plus,
 } from "lucide-react";
-import { DataCard } from "../components/DataCard";
-import { MobileHeader } from "../components/MobileHeader";
+import { MobileHeader } from "../components/layout/MobileHeader";
+import { DataCard } from "../components/ui/DataCard";
+import { ConfirmModal } from "../components/ui/ConfirmModal";
 
 export function Herds() {
   const { openHerdModal } = useModals();

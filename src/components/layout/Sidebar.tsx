@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Layers, Beef, LogOut, Sun, Moon, Plus, ChevronDown } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../hooks/useTheme';
-import { useModals } from '../contexts/ModalContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../hooks/ui/useTheme';
+import { useModals } from '../../contexts/ModalContext';
 
 export function Sidebar() {
   const location = useLocation();

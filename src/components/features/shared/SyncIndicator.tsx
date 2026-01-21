@@ -1,5 +1,5 @@
 import { CloudOff, RefreshCw, UploadCloud, Wifi, RotateCw } from "lucide-react";
-import { useSync } from "../contexts/SyncContext";
+import { useSync } from "../../../contexts/SyncContext";
 
 export function SyncIndicator() {
   const { isOnline, isSyncing, pendingCount, syncNow } = useSync();

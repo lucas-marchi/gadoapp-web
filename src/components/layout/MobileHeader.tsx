@@ -1,7 +1,7 @@
 import { LogOut, Moon, Sun } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useTheme } from '../hooks/useTheme';
-import { SyncIndicator } from './SyncIndicator';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../hooks/ui/useTheme';
+import { SyncIndicator } from '../features/shared/SyncIndicator';
 
 interface MobileHeaderProps {
   title: string;

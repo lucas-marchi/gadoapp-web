@@ -1,5 +1,5 @@
 import { useDashboardController } from "../hooks/controllers/useDashboardController";
-import { SyncIndicator } from "../components/SyncIndicator";
+import { SyncIndicator } from "../components/features/shared/SyncIndicator";
 import { Beef, Layers, TrendingUp } from "lucide-react";
 import {
   PieChart,
@@ -12,7 +12,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import { MobileHeader } from "../components/MobileHeader";
+import { MobileHeader } from "../components/layout/MobileHeader";
 
 export function Dashboard() {
   const { totalBovines, totalHerds, byGender, byHerd, growthRate, newBovinesCount } =

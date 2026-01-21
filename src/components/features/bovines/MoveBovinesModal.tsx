@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { X, Layers, ArrowRight } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../../db/db';
+import { db } from '../../../db/db';
 
 interface MoveBovinesModalProps {
   isOpen: boolean;

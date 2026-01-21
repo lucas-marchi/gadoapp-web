@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { useModals } from '../../contexts/ModalContext';
-import { db } from '../../db/db';
+import { useModals } from '../../../contexts/ModalContext';
+import { db } from '../../../db/db';
 import { toast } from 'sonner';
-import { useSync } from '../../contexts/SyncContext';
+import { useSync } from '../../../contexts/SyncContext';
 
 export function HerdFormModal() {
   const { isHerdModalOpen, closeHerdModal, herdEditingId, herdInitialData } = useModals();

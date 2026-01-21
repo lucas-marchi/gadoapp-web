@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil, Trash2, ChevronRight, Check } from "lucide-react";
-import { useLongPress } from "../hooks/useLongPress";
+import { useLongPress } from "../../hooks/ui/useLongPress";
 
 interface DataCardProps {
   title: string;
