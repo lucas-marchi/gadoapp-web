@@ -19,12 +19,10 @@ interface ModalContextType {
 const ModalContext = createContext<ModalContextType>({} as ModalContextType);
 
 export function ModalProvider({ children }: { children: ReactNode }) {
-  // Herd State
   const [isHerdModalOpen, setIsHerdModalOpen] = useState(false);
   const [herdEditingId, setHerdEditingId] = useState<number | null>(null);
   const [herdInitialData, setHerdInitialData] = useState<any>(null);
 
-  // Bovine State
   const [isBovineModalOpen, setIsBovineModalOpen] = useState(false);
   const [bovineEditingId, setBovineEditingId] = useState<number | null>(null);
   const [bovineInitialData, setBovineInitialData] = useState<any>(null);

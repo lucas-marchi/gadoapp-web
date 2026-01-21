@@ -43,11 +43,9 @@ export function DataCard({
   };
 
   const longPressProps = useLongPress(
-    // Callback Long Press
     () => {
       if (onLongPress) onLongPress();
     },
-    // Callback Click Normal
     handleInteraction,
     { delay: 600 },
   );

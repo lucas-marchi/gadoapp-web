@@ -2,41 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Suporte para Safe Area do iPhone */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 @layer base {
   :root {
-    /* Primary Scale (Olive Green - Base #839201) */
     --color-primary-50: 249 252 235;
     --color-primary-100: 239 248 206;
     --color-primary-200: 224 242 163;
     --color-primary-300: 204 232 110;
     --color-primary-400: 185 219 50;
     --color-primary-500: 158 194 13;
-    --color-primary-600: 131 146 1;  /* #839201 */
+    --color-primary-600: 131 146 1; 
     --color-primary-700: 101 114 4;
     --color-primary-800: 82 91 10;
     --color-primary-900: 68 76 14;
     --color-primary-950: 36 41 3;
 
-    /* Secondary Scale (Gold/Yellow - Base #FED403) */
     --color-secondary-50: 255 253 235;
     --color-secondary-100: 255 249 205;
     --color-secondary-200: 255 242 160;
     --color-secondary-300: 255 230 100;
-    --color-secondary-400: 254 212 3;   /* #FED403 */
+    --color-secondary-400: 254 212 3;
     --color-secondary-500: 235 189 0;
-    --color-secondary-600: 203 152 2;   /* #CBB802 (Darker for text) */
+    --color-secondary-600: 203 152 2;
     --color-secondary-700: 164 114 4;
     --color-secondary-800: 138 92 10;
     --color-secondary-900: 116 75 14;
     --color-secondary-950: 66 40 4;
 
-    /* Neutral Scale (Dark Blue/Grey - Base #2A313B) */
-    /* Used for text, backgrounds, borders */
     --color-neutral-50: 247 248 250;
     --color-neutral-100: 236 238 241;
     --color-neutral-200: 216 220 226;
@@ -45,11 +40,10 @@
     --color-neutral-500: 115 127 143;
     --color-neutral-600: 87 99 115;
     --color-neutral-700: 64 74 88;
-    --color-neutral-800: 42 49 59;   /* #2A313B (Sidebar Dark Mode) */
+    --color-neutral-800: 42 49 59;
     --color-neutral-900: 33 38 46;
-    --color-neutral-950: 21 24 29;   /* Darker Page Background */
+    --color-neutral-950: 21 24 29;
 
-    /* Danger Scale (Warm Red to match Gold/Olive) */
     --color-danger-50: 255 241 242;
     --color-danger-100: 255 228 230;
     --color-danger-200: 254 205 211;
@@ -62,7 +56,6 @@
     --color-danger-900: 136 19 55;
     --color-danger-950: 76 5 25;
 
-    /* Warning Scale (Warm Orange) */
     --color-warning-50: 255 247 237;
     --color-warning-100: 255 237 213;
     --color-warning-200: 254 215 170;
@@ -75,7 +68,6 @@
     --color-warning-900: 124 45 18;
     --color-warning-950: 67 20 7;
 
-    /* Accent Scale (Deep Rust/Copper) */
     --color-accent-50: 255 245 240;
     --color-accent-100: 255 230 220;
     --color-accent-200: 255 200 180;

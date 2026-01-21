@@ -14,8 +14,7 @@ export function useBovinesController() {
     gender: "",
   });
 
-  // 1. Listas Reativas (Dexie)
-  // Query Filtrada
+  // 1. Listas Reativas (Dexie) Query Filtrada
   const bovines = useLiveQuery(async () => {
     let collection = db.bovines.filter((b) => b.active !== false);
 
@@ -50,11 +49,10 @@ export function useBovinesController() {
   }
 
   async function confirmMove(targetHerdId: number) {
-    await batchMove(targetHerdId); // Já existe essa função
+    await batchMove(targetHerdId);
     setMoveModalOpen(false);
   }
 
-  // Rebanhos ativos (para o Select)
   const herds = useLiveQuery(() =>
     db.herds.filter((h) => h.active !== false).toArray(),
   );
@@ -119,13 +117,13 @@ export function useBovinesController() {
 
   const [formData, setFormData] = useState({
     name: "",
-    status: "VIVO", // VIVO, MORTO, VENDIDO
-    gender: "MACHO", // MACHO, FEMEA
+    status: "VIVO",
+    gender: "MACHO",
     breed: "",
     weight: "",
     birth: "",
     description: "",
-    herdId: "", // String para facilitar o select (converte pra number no save)
+    herdId: "",
     momId: "",
     dadId: "",
   });
@@ -193,7 +191,6 @@ export function useBovinesController() {
     }
 
     try {
-      // Define o status correto com tipagem forte
       const newSyncStatus: "updated" | "created" = editingId
         ? "updated"
         : "created";

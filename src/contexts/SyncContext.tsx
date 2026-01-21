@@ -41,7 +41,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
       setIsSyncing(true);
       try {
         // =================================================
-        // 1. REBANHOS (HERDS) - Prioridade Máxima
+        // 1. REBANHOS (HERDS)
         // =================================================
 
         // 1.1 PUSH HERDS
@@ -104,9 +104,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                   updatedAt: serverHerd.updatedAt,
                 });
 
-                // ATUALIZAÇÃO EM CASCATA:
-                // Se o rebanho ganhou um serverId novo, precisamos avisar os bois locais
-                // que pertencem a ele para usarem esse serverId no futuro envio.
                 if (!target.serverId) {
                   await db.bovines
                     .where("herdId")
@@ -133,8 +130,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         // 2. BOVINOS (BOVINES)
         // =================================================
 
-        // 2.1 PREPARAR DADOS (Vincular IDs)
-        // Antes de enviar, garante que todo boi tenha o serverHerdId preenchido
         const bovinesWithoutServerHerd = await db.bovines
           .filter((b) => !b.serverHerdId && !!b.herdId)
           .toArray();
@@ -223,7 +218,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 ? await db.bovines
                     .where("name")
                     .equals(sb.name)
-                    .filter((b) => !b.serverId) // Só pega se não tiver vínculo ainda
+                    .filter((b) => !b.serverId)
                     .first()
                 : null;
 

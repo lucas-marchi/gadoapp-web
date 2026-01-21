@@ -77,7 +77,7 @@ export function Bovines() {
              onClick={() => {
                const newMode = !isSelectionMode;
                setIsSelectionMode(newMode);
-               if (!newMode) clearSelection(); // Limpa ao sair do modo
+               if (!newMode) clearSelection();
              }}
              className={`
                p-3 rounded-xl border shadow-sm transition-all h-[50px] w-[50px] flex items-center justify-center
@@ -164,8 +164,8 @@ export function Bovines() {
       <BatchActionBar 
         count={selectedIds.length}
         onClear={() => {
-            clearSelection(); // Limpa seleção
-            setIsSelectionMode(false); // Sai do modo
+            clearSelection();
+            setIsSelectionMode(false);
         }}
         onDelete={batchDelete}
         onMove={openMoveModal}

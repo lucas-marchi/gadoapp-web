@@ -2,7 +2,6 @@ import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 
 export function useDashboardController() {
-  // Busca todos os dados ativos
   const bovines = useLiveQuery(() =>
     db.bovines.filter((b) => b.active !== false).toArray(),
   );
@@ -10,7 +9,6 @@ export function useDashboardController() {
     db.herds.filter((h) => h.active !== false).toArray(),
   );
 
-  // Cálculos
   const totalBovines = bovines?.length || 0;
   const totalHerds = herds?.length || 0;
 
@@ -20,7 +18,7 @@ export function useDashboardController() {
 
   const newBovinesCount =
     bovines?.filter((b) => {
-      const date = new Date(b.updatedAt); // Usando updatedAt como proxy
+      const date = new Date(b.updatedAt);
       return b.active && date >= thirtyDaysAgo;
     }).length || 0;
 
