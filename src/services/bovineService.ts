@@ -1,0 +1,89 @@
+import { db } from "../db/db";
+
+// Interface para o DTO de criação/edição
+export interface BovineDTO {
+  name: string;
+  status: string;
+  gender: string;
+  breed?: string;
+  weight?: number;
+  birth: string;
+  description?: string;
+  herdId: number;
+  momId?: number;
+  dadId?: number;
+}
+
+export const bovineService = {
+  list: async (filters: any) => {
+    let collection = db.bovines.filter((b) => b.active !== false);
+
+    if (filters.herdId)
+      collection = collection.filter(
+        (b) => b.herdId === Number(filters.herdId),
+      );
+    if (filters.status)
+      collection = collection.filter((b) => b.status === filters.status);
+    if (filters.gender)
+      collection = collection.filter((b) => b.gender === filters.gender);
+
+    if (filters.search) {
+      const lower = filters.search.toLowerCase();
+      collection = collection.filter(
+        (b) =>
+          b.name.toLowerCase().includes(lower) ||
+          (b.breed && b.breed.toLowerCase().includes(lower)) ||
+          false,
+      );
+    }
+    return collection.toArray();
+  },
+
+  save: async (dto: BovineDTO, id?: number) => {
+    const newSyncStatus: "updated" | "created" = id ? "updated" : "created";
+
+    const payload = {
+      ...dto,
+      active: true,
+      syncStatus: newSyncStatus,
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (id) {
+      return db.bovines.update(id, payload);
+    }
+    return db.bovines.add({ ...payload, syncStatus: "created" });
+  },
+
+  delete: async (id: number) => {
+    return db.bovines.update(id, {
+      active: false,
+      syncStatus: "deleted",
+      updatedAt: new Date().toISOString(),
+    });
+  },
+
+  batchMove: async (ids: number[], targetHerdId: number) => {
+    return db.transaction("rw", db.bovines, async () => {
+      for (const id of ids) {
+        await db.bovines.update(id, {
+          herdId: targetHerdId,
+          syncStatus: "updated",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+  },
+
+  batchDelete: async (ids: number[]) => {
+    return db.transaction("rw", db.bovines, async () => {
+      for (const id of ids) {
+        await db.bovines.update(id, {
+          active: false,
+          syncStatus: "deleted",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+  },
+};
