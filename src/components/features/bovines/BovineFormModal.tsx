@@ -1,34 +1,28 @@
-import { useState, useEffect } from "react";
-import { X } from "lucide-react";
-import { useModals } from "../../../contexts/ModalContext";
-import { db } from "../../../db/db";
-import { useLiveQuery } from "dexie-react-hooks";
-import { toast } from "sonner";
-import { useSync } from "../../../contexts/SyncContext";
+import { useLiveQuery } from 'dexie-react-hooks';
+import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { useModals } from '../../../contexts/ModalContext';
+import { useSync } from '../../../contexts/SyncContext';
+import { db } from '../../../db/db';
+import { bovineService, type BovineDTO } from '../../../services/bovineService';
 
 export function BovineFormModal() {
-  const {
-    isBovineModalOpen,
-    closeBovineModal,
-    bovineEditingId,
-    bovineInitialData,
-  } = useModals();
+  const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData } = useModals();
   const { syncNow } = useSync();
-  const herds = useLiveQuery(() =>
-    db.herds.filter((h) => h.active !== false).toArray()
-  );
+  const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
 
   const [formData, setFormData] = useState({
-    name: "",
-    status: "VIVO",
-    gender: "MACHO",
-    breed: "",
-    weight: "",
-    birth: "",
-    description: "",
-    herdId: "",
-    momId: "",
-    dadId: "",
+    name: '',
+    status: 'VIVO',
+    gender: 'MACHO',
+    breed: '',
+    weight: '',
+    birth: '',
+    description: '',
+    herdId: '',
+    momId: '',
+    dadId: ''
   });
 
   useEffect(() => {
@@ -38,29 +32,26 @@ export function BovineFormModal() {
           name: bovineInitialData.name,
           status: bovineInitialData.status,
           gender: bovineInitialData.gender,
-          breed: bovineInitialData.breed || "",
-          weight: bovineInitialData.weight?.toString() || "",
-          birth: bovineInitialData.birth
-            ? new Date(bovineInitialData.birth).toISOString().split("T")[0]
-            : "",
-          description: bovineInitialData.description || "",
-          herdId: bovineInitialData.herdId?.toString() || "",
-          momId: bovineInitialData.momId?.toString() || "",
-          dadId: bovineInitialData.dadId?.toString() || "",
+          breed: bovineInitialData.breed || '',
+          weight: bovineInitialData.weight?.toString() || '',
+          birth: bovineInitialData.birth ? new Date(bovineInitialData.birth).toISOString().split('T')[0] : '',
+          description: bovineInitialData.description || '',
+          herdId: bovineInitialData.herdId?.toString() || '',
+          momId: bovineInitialData.momId?.toString() || '',
+          dadId: bovineInitialData.dadId?.toString() || ''
         });
       } else {
-        // Reset para criar novo
         setFormData({
-          name: "",
-          status: "VIVO",
-          gender: "MACHO",
-          breed: "",
-          weight: "",
-          birth: new Date().toISOString().split("T")[0],
-          description: "",
-          herdId: "",
-          momId: "",
-          dadId: "",
+          name: '',
+          status: 'VIVO',
+          gender: 'MACHO',
+          breed: '',
+          weight: '',
+          birth: new Date().toISOString().split('T')[0],
+          description: '',
+          herdId: '',
+          momId: '',
+          dadId: ''
         });
       }
     }
@@ -71,12 +62,12 @@ export function BovineFormModal() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.name.trim() || !formData.herdId) {
-      toast.error("Preencha os campos obrigatórios");
-      return;
+        toast.error("Preencha os campos obrigatórios");
+        return;
     }
 
     try {
-      const payload = {
+      const dto: BovineDTO = {
         name: formData.name,
         status: formData.status,
         gender: formData.gender,
@@ -85,43 +76,31 @@ export function BovineFormModal() {
         birth: new Date(formData.birth).toISOString(),
         description: formData.description,
         herdId: parseInt(formData.herdId),
-        active: true,
-        syncStatus: (bovineEditingId ? "updated" : "created") as
-          | "updated"
-          | "created",
-        updatedAt: new Date().toISOString(),
+        momId: formData.momId ? parseInt(formData.momId) : undefined,
+        dadId: formData.dadId ? parseInt(formData.dadId) : undefined,
       };
 
-      if (bovineEditingId) {
-        await db.bovines.update(bovineEditingId, payload);
-        toast.success("Bovino atualizado");
-      } else {
-        await db.bovines.add({ ...payload, syncStatus: "created" });
-        toast.success("Bovino criado");
-      }
+      await bovineService.save(dto, bovineEditingId || undefined);
+
+      toast.success(bovineEditingId ? "Bovino atualizado" : "Bovino criado");
       closeBovineModal();
       syncNow();
     } catch (error) {
+      console.error(error);
       toast.error("Erro ao salvar");
     }
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
-      <div
-        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity"
-        onClick={closeBovineModal}
-      />
-
+      <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeBovineModal} />
+      
       <div className="bg-white dark:bg-neutral-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-neutral-800 dark:text-white">
-            {bovineEditingId ? "Editar Bovino" : "Novo Bovino"}
+            {bovineEditingId ? 'Editar Bovino' : 'Novo Bovino'}
           </h2>
-          <button
-            onClick={closeBovineModal}
-            className="p-2 bg-neutral-100 dark:bg-neutral-700 rounded-full text-neutral-500 dark:text-neutral-400"
-          >
+          <button onClick={closeBovineModal} className="p-2 bg-neutral-100 dark:bg-neutral-700 rounded-full text-neutral-500 dark:text-neutral-400">
             <X size={20} />
           </button>
         </div>

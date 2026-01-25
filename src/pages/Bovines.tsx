@@ -16,34 +16,28 @@ export function Bovines() {
   const {
     bovines,
     herds,
-    deleteModalOpen,
-    setDeleteModalOpen,
-    bovineToDelete,
-    requestDelete,
-    confirmDelete,
     filters,
     setFilters,
-    selectedIds,
-    toggleSelection,
-    clearSelection,
+    selection,
+    modals,
+    closeModals,
+    requestDelete,
+    confirmDeleteSingle,
     batchDelete,
-    moveModalOpen,
-    setMoveModalOpen,
+    batchMove,
     openMoveModal,
-    confirmMove
+    bovineToDelete 
   } = useBovinesController();
 
-  // Modo de seleção
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   
-  // Sincroniza modo de seleção: Se selecionou algo, ativa o modo.
   useEffect(() => {
-    if (selectedIds.length > 0) setIsSelectionMode(true);
-  }, [selectedIds]);
+    if (selection.selectedIds.length > 0) setIsSelectionMode(true);
+  }, [selection.selectedIds]);
 
   const handleLongPress = (id: number) => {
     setIsSelectionMode(true);
-    toggleSelection(id);
+    selection.toggle(id);
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
@@ -56,7 +50,6 @@ export function Bovines() {
       
       <MobileHeader title="Meus Bovinos" />
 
-      {/* HEADER DESKTOP */}
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-white">
           Meus Bovinos
@@ -66,18 +59,16 @@ export function Bovines() {
 
       <main className="max-w-3xl mx-auto p-4">
         
-        {/* BARRA DE FERRAMENTAS (Filtros + Botão Seleção) */}
         <div className="flex gap-2 mb-6 items-start">
           <div className="flex-1">
              <BovineFilters filters={filters} setFilters={setFilters} herds={herds} />
           </div>
           
-          {/* Botão Modo Seleção (Desktop/Mobile Manual) */}
           <button 
              onClick={() => {
                const newMode = !isSelectionMode;
                setIsSelectionMode(newMode);
-               if (!newMode) clearSelection();
+               if (!newMode) selection.clear();
              }}
              className={`
                p-3 rounded-xl border shadow-sm transition-all h-[50px] w-[50px] flex items-center justify-center
@@ -91,7 +82,6 @@ export function Bovines() {
            </button>
         </div>
 
-        {/* LISTA */}
         {!bovines ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary-600"></div>
@@ -100,9 +90,6 @@ export function Bovines() {
           <div className="space-y-3">
             {bovines.length === 0 ? (
               <div className="text-center py-20 px-6">
-                <div className="bg-neutral-100 dark:bg-neutral-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-neutral-400 dark:text-neutral-500">
-                  <Plus size={32} />
-                </div>
                 <h3 className="text-neutral-900 dark:text-white font-medium mb-1">
                   Nenhum bovino
                 </h3>
@@ -133,10 +120,9 @@ export function Bovines() {
                   }
                   status={bovine.syncStatus}
                   
-                  // PROPS DE SELEÇÃO (Adicionadas)
                   selectable={isSelectionMode}
-                  isSelected={selectedIds.includes(bovine.id!)}
-                  onSelect={() => toggleSelection(bovine.id!)}
+                  isSelected={selection.selectedIds.includes(bovine.id!)}
+                  onSelect={() => selection.toggle(bovine.id!)}
                   onLongPress={() => handleLongPress(bovine.id!)}
 
                   onEdit={() => openBovineModal(bovine.id, bovine)}
@@ -150,7 +136,6 @@ export function Bovines() {
         )}
       </main>
 
-      {/* FAB (Mobile) - Esconde se estiver selecionando */}
       {!isSelectionMode && (
         <button
             onClick={() => openBovineModal()}
@@ -160,11 +145,10 @@ export function Bovines() {
         </button>
       )}
 
-      {/* BARRA DE AÇÕES EM LOTE */}
       <BatchActionBar 
-        count={selectedIds.length}
+        count={selection.selectedIds.length}
         onClear={() => {
-            clearSelection();
+            selection.clear();
             setIsSelectionMode(false);
         }}
         onDelete={batchDelete}
@@ -172,21 +156,20 @@ export function Bovines() {
       />
 
       <ConfirmModal
-        isOpen={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={confirmDelete}
+        isOpen={modals.delete}
+        onClose={closeModals}
+        onConfirm={confirmDeleteSingle}
         title={`Excluir ${bovineToDelete?.name}?`}
         message="Esta ação é irreversível."
         confirmText="Excluir Bovino"
         isDangerous
-        confirmKeyword={bovineToDelete?.name}
       />
 
-        <MoveBovinesModal
-        isOpen={moveModalOpen}
-        onClose={() => setMoveModalOpen(false)}
-        onConfirm={confirmMove}
-        count={selectedIds.length}
+      <MoveBovinesModal
+        isOpen={modals.move}
+        onClose={closeModals}
+        onConfirm={batchMove}
+        count={selection.selectedIds.length}
       />
     </div>
   );

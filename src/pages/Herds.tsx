@@ -1,9 +1,7 @@
 import { SyncIndicator } from "../components/features/shared/SyncIndicator";
 import { useHerdsController } from "../hooks/controllers/useHerdsController";
 import { useModals } from "../contexts/ModalContext";
-import {
-  Plus,
-} from "lucide-react";
+import { Plus } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { DataCard } from "../components/ui/DataCard";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
@@ -17,7 +15,7 @@ export function Herds() {
     setDeleteModalOpen,
     requestDelete,
     confirmDelete,
-    herdToDelete,
+    herdToDelete
   } = useHerdsController();
 
   return (
@@ -25,7 +23,7 @@ export function Herds() {
             
       <MobileHeader title="Meus Rebanhos" />
 
-      {/* HEADER DESKTOP (Título) */}
+      {/* HEADER DESKTOP */}
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">
         <h1 className="text-3xl font-bold text-neutral-800 dark:text-white">
           Meus Rebanhos
@@ -69,7 +67,6 @@ export function Herds() {
         )}
       </main>
 
-      {/* FAB (Apenas Mobile) */}
       <button
         onClick={() => openHerdModal()}
         className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary-600 hover:bg-primary-500 text-white rounded-full shadow-lg shadow-primary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
@@ -77,7 +74,6 @@ export function Herds() {
         <Plus size={28} />
       </button>
 
-      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}

@@ -1,6 +1,5 @@
 import { db } from "../db/db";
 
-// Interface para o DTO de criação/edição
 export interface BovineDTO {
   name: string;
   status: string;
@@ -40,10 +39,18 @@ export const bovineService = {
   },
 
   save: async (dto: BovineDTO, id?: number) => {
+    console.log("SAVE BOVINE CHAMADO", dto);
+
     const newSyncStatus: "updated" | "created" = id ? "updated" : "created";
+
+    const herd = await db.herds.get(dto.herdId);
+    const serverHerdId = herd?.serverId || undefined;
+
+    console.log("Novo Rebanho Local:", dto.herdId, "ServerID:", serverHerdId);
 
     const payload = {
       ...dto,
+      serverHerdId,
       active: true,
       syncStatus: newSyncStatus,
       updatedAt: new Date().toISOString(),
@@ -64,13 +71,24 @@ export const bovineService = {
   },
 
   batchMove: async (ids: number[], targetHerdId: number) => {
+    const targetHerd = await db.herds.get(targetHerdId);
+    const targetServerId = targetHerd?.serverId;
+
     return db.transaction("rw", db.bovines, async () => {
       for (const id of ids) {
-        await db.bovines.update(id, {
+        const updatePayload: any = {
           herdId: targetHerdId,
           syncStatus: "updated",
           updatedAt: new Date().toISOString(),
-        });
+        };
+
+        if (targetServerId) {
+          updatePayload.serverHerdId = targetServerId;
+        } else {
+          updatePayload.serverHerdId = undefined;
+        }
+
+        await db.bovines.update(id, updatePayload);
       }
     });
   },

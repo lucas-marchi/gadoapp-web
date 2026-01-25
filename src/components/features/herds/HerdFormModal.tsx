@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useModals } from '../../../contexts/ModalContext';
-import { db } from '../../../db/db';
-import { toast } from 'sonner';
 import { useSync } from '../../../contexts/SyncContext';
+import { toast } from 'sonner';
+import { herdService } from '../../../services/herdService';
 
 export function HerdFormModal() {
   const { isHerdModalOpen, closeHerdModal, herdEditingId, herdInitialData } = useModals();
   const { syncNow } = useSync();
   const [name, setName] = useState('');
 
-  // Carrega dados ao abrir
   useEffect(() => {
     if (isHerdModalOpen) {
       setName(herdInitialData?.name || '');
+    } else {
+      setName('');
     }
   }, [isHerdModalOpen, herdInitialData]);
 
@@ -21,25 +22,15 @@ export function HerdFormModal() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim()) {
+        toast.error("Nome obrigatório");
+        return;
+    }
 
     try {
-      if (herdEditingId) {
-        await db.herds.update(herdEditingId, {
-          name,
-          syncStatus: 'updated',
-          updatedAt: new Date().toISOString()
-        });
-        toast.success("Rebanho atualizado");
-      } else {
-        await db.herds.add({
-          name,
-          active: true,
-          syncStatus: 'created',
-          updatedAt: new Date().toISOString()
-        });
-        toast.success("Rebanho criado");
-      }
+      await herdService.save({ name }, herdEditingId || undefined);
+      
+      toast.success(herdEditingId ? "Rebanho atualizado" : "Rebanho criado");
       closeHerdModal();
       syncNow();
     } catch (error) {
@@ -71,7 +62,7 @@ export function HerdFormModal() {
             onChange={e => setName(e.target.value)}
             placeholder="Ex: Gado de Leite"
           />
-          <button type="submit" className="w-full bg-primary-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary-200 dark:shadow-none active:scale-[0.98] transition-transform">
+          <button type="submit" className="w-full bg-primary-600 hover:bg-primary-700 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary-200 dark:shadow-none active:scale-[0.98] transition-transform">
             Salvar
           </button>
         </form>
