@@ -8,6 +8,18 @@
 
 @layer base {
   :root {
+    --color-primary-50: 248 249 242;
+    --color-primary-100: 236 238 216;
+    --color-primary-200: 205 211 153;
+    --color-primary-300: 168 178 77;
+    --color-primary-400: 131 146 1;
+    --color-primary-500: 117 131 0;
+    --color-primary-600: 98 109 0;
+    --color-primary-700: 72 80 0;
+    --color-primary-800: 45 51 0;
+    --color-primary-900: 26 29 0;
+    --color-primary-950: 13 14 0;
+
     --color-secondary-50: 252 251 242;
     --color-secondary-100: 247 244 217;
     --color-secondary-200: 234 226 153;
@@ -31,18 +43,6 @@
     --color-tertiary-800: 88 74 1;
     --color-tertiary-900: 50 42 0;
     --color-tertiary-950: 25 21 0;
-
-    --color-primary-50: 248 249 242;
-    --color-primary-100: 236 238 216;
-    --color-primary-200: 205 211 153;
-    --color-primary-300: 168 178 77;
-    --color-primary-400: 131 146 1;
-    --color-primary-500: 117 131 0;
-    --color-primary-600: 98 109 0;
-    --color-primary-700: 72 80 0;
-    --color-primary-800: 45 51 0;
-    --color-primary-900: 26 29 0;
-    --color-primary-950: 13 14 0;
 
     --color-neutral-50: 247 248 250;
     --color-neutral-100: 236 238 241;

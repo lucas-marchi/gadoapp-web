@@ -42,8 +42,8 @@ export function HerdFormModal() {
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeHerdModal} />
       
-      <div className="bg-white dark:bg-neutral-800 w-full max-w-md rounded-t-2xl sm:rounded-2xl p-6 shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
-        <div className="flex justify-between items-center mb-6">
+      <div className="bg-white dark:bg-neutral-800 w-full max-w-md rounded-t-2xl sm:rounded-2xl shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex justify-between items-center p-6 border-b border-neutral-100 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-800 dark:text-white">
             {herdEditingId ? 'Editar Rebanho' : 'Novo Rebanho'}
           </h2>
@@ -52,6 +52,7 @@ export function HerdFormModal() {
           </button>
         </div>
 
+        <div className="flex-1 overflow-y-auto p-6">
         <form onSubmit={handleSubmit}>
           <label className="label-text">Nome do Rebanho</label>
           <input
@@ -66,6 +67,7 @@ export function HerdFormModal() {
             Salvar
           </button>
         </form>
+        </div>
       </div>
     </div>
   );
