@@ -14,6 +14,7 @@ interface DataCardProps {
   isSelected?: boolean;
   onSelect?: () => void;
   onLongPress?: () => void;
+  variant?: 'primary' | 'secondary' | 'tertiary';
 }
 
 export function DataCard({
@@ -29,6 +30,7 @@ export function DataCard({
   isSelected,
   onSelect,
   onLongPress,
+  variant = 'primary',
 }: DataCardProps) {
   const isPending = status && status !== "synced";
 
@@ -52,6 +54,32 @@ export function DataCard({
     e.stopPropagation();
   };
 
+  const variantStyles = {
+    primary: {
+      selectedBorder: "border-primary-500 ring-1 ring-primary-500",
+      selectedBg: "bg-primary-50/30",
+      checkbox: "bg-primary-500 border-primary-500",
+      hoverBorder: "hover:border-primary-300 dark:hover:border-primary-700",
+      editButton: "hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/30",
+    },
+    secondary: {
+      selectedBorder: "border-secondary-500 ring-1 ring-secondary-500",
+      selectedBg: "bg-secondary-50/30",
+      checkbox: "bg-secondary-500 border-secondary-500",
+      hoverBorder: "hover:border-secondary-300 dark:hover:border-secondary-700",
+      editButton: "hover:text-secondary-600 hover:bg-secondary-50 dark:hover:bg-secondary-900/30",
+    },
+    tertiary: {
+      selectedBorder: "border-tertiary-500 ring-1 ring-tertiary-500",
+      selectedBg: "bg-tertiary-50/30",
+      checkbox: "bg-tertiary-500 border-tertiary-500",
+      hoverBorder: "hover:border-tertiary-300 dark:hover:border-tertiary-700",
+      editButton: "hover:text-tertiary-600 hover:bg-tertiary-50 dark:hover:bg-tertiary-900/30",
+    },
+  };
+
+  const styles = variantStyles[variant];
+
   return (
     <div
       className={`relative transition-all duration-200 ${isSelected ? "scale-[0.98]" : ""}`}
@@ -60,15 +88,15 @@ export function DataCard({
         {...longPressProps}
         className={`
           group relative bg-white dark:bg-neutral-800 p-4 rounded-xl border transition-all duration-200 cursor-pointer select-none
-          hover:shadow-md hover:border-primary-300 dark:hover:border-primary-700
-          ${isSelected ? "border-secondary-500 ring-1 ring-secondary-500 bg-secondary-50/30" : "border-neutral-200 dark:border-neutral-700 shadow-sm"}
+          hover:shadow-md ${styles.hoverBorder}
+          ${isSelected ? `${styles.selectedBorder} ${styles.selectedBg}` : "border-neutral-200 dark:border-neutral-700 shadow-sm"}
         `}
       >
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4 flex-1 min-w-0">
             {selectable && (
               <div
-                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? "bg-secondary-500 border-secondary-500 text-white" : "border-neutral-300"}`}
+                className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${isSelected ? `${styles.checkbox} text-white` : "border-neutral-300"}`}
               >
                 {isSelected && <Check size={12} strokeWidth={4} />}
               </div>
@@ -108,7 +136,7 @@ export function DataCard({
               onMouseUp={stopPropagation}
               onTouchStart={stopPropagation}
               onTouchEnd={stopPropagation}
-              className="p-2 text-neutral-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg"
+              className={`p-2 text-neutral-400 rounded-lg ${styles.editButton}`}
             >
               <Pencil size={18} />
             </button>
@@ -121,7 +149,7 @@ export function DataCard({
               onMouseUp={stopPropagation}
               onTouchStart={stopPropagation}
               onTouchEnd={stopPropagation}
-              className="p-2 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 rounded-lg"
+              className="p-2 text-neutral-400 hover:text-danger-600 hover:bg-danger-50 dark:hover:bg-danger-900/30 rounded-lg"
             >
               <Trash2 size={18} />
             </button>

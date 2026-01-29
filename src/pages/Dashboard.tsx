@@ -61,7 +61,7 @@ export function Dashboard() {
             </div>
           </div>
 
-          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-primary-600 to-primary-800 p-5 rounded-2xl shadow-lg text-white">
+          <div className="col-span-2 md:col-span-1 bg-gradient-to-br from-primary-400 to-primary-700 p-5 rounded-2xl shadow-lg text-white">
           <div className="flex items-center gap-3 mb-2 opacity-90">
             <TrendingUp size={20} />
             <span className="text-sm font-medium">Novas Entradas</span>

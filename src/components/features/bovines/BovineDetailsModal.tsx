@@ -39,7 +39,7 @@ export function BovineDetailsModal() {
       <div className="bg-white dark:bg-neutral-800 w-full max-w-lg rounded-t-3xl sm:rounded-2xl shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 duration-300 max-h-[90vh] overflow-hidden flex flex-col">
         
         {/* Header Colorido baseado no Gênero */}
-        <div className={`p-6 ${selectedBovine.gender === 'MACHO' ? 'bg-primary-600' : 'bg-accent-600'} text-white relative`}>
+        <div className={`p-6 ${selectedBovine.gender === 'MACHO' ? 'bg-blue-600' : 'bg-pink-600'} text-white relative`}>
           <button onClick={closeBovineDetails} className="absolute top-4 right-4 p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors">
             <X size={20} />
           </button>
@@ -81,13 +81,13 @@ export function BovineDetailsModal() {
                 icon={Beef} 
                 label="Mãe" 
                 value={mom?.name} 
-                colorClass="text-accent-500" 
+                colorClass="text-pink-600" 
               />
               <DetailItem 
                 icon={Beef} 
                 label="Pai" 
                 value={dad?.name} 
-                colorClass="text-primary-500" 
+                colorClass="text-blue-600" 
               />
             </div>
           </section>

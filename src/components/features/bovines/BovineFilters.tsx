@@ -5,9 +5,10 @@ interface BovineFiltersProps {
   filters: any;
   setFilters: (f: any) => void;
   herds: any[] | undefined;
+  extraActions?: React.ReactNode;
 }
 
-export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps) {
+export function BovineFilters({ filters, setFilters, herds, extraActions }: BovineFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const activeFiltersCount = [filters.herdId, filters.status, filters.gender].filter(Boolean).length;
@@ -16,7 +17,7 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
     <div className="mb-6 space-y-3">
       {/* BARRA DE BUSCA */}
       <div className="flex gap-2">
-        <div className="flex-1 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center px-4 py-3 shadow-sm transition-all focus-within:ring-2 focus-within:ring-primary-500">
+        <div className="flex-1 bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 flex items-center px-4 py-3 shadow-sm transition-all focus-within:ring-2 focus-within:ring-secondary-500">
           <Search size={20} className="text-neutral-400 mr-3" />
           <input 
             type="text" 
@@ -37,17 +38,19 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
           className={`
             p-3 rounded-xl border shadow-sm transition-all relative
             ${isExpanded || activeFiltersCount > 0
-              ? 'bg-primary-50 border-primary-200 text-primary-600 dark:bg-primary-900/20 dark:border-primary-800 dark:text-primary-400' 
+              ? 'bg-secondary-50 border-secondary-200 text-secondary-600 dark:bg-secondary-900/20 dark:border-secondary-800 dark:text-secondary-400' 
               : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'}
           `}
         >
           <Filter size={20} />
           {activeFiltersCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 w-4 h-4 bg-secondary-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
               {activeFiltersCount}
             </span>
           )}
         </button>
+
+        {extraActions}
       </div>
 
       {/* PAINEL EXPANSÍVEL */}
@@ -59,7 +62,7 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
             <div>
               <label className="label-text text-xs">Rebanho</label>
               <select 
-                className="input-field py-2 text-sm"
+                className="input-field py-2 text-sm focus:ring-secondary-500"
                 value={filters.herdId}
                 onChange={e => setFilters({...filters, herdId: e.target.value})}
               >
@@ -74,7 +77,7 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
             <div>
               <label className="label-text text-xs">Status</label>
               <select 
-                className="input-field py-2 text-sm"
+                className="input-field py-2 text-sm focus:ring-secondary-500"
                 value={filters.status}
                 onChange={e => setFilters({...filters, status: e.target.value})}
               >
@@ -89,7 +92,7 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
             <div>
               <label className="label-text text-xs">Gênero</label>
               <select 
-                className="input-field py-2 text-sm"
+                className="input-field py-2 text-sm focus:ring-secondary-500"
                 value={filters.gender}
                 onChange={e => setFilters({...filters, gender: e.target.value})}
               >
@@ -103,7 +106,7 @@ export function BovineFilters({ filters, setFilters, herds }: BovineFiltersProps
             <div className="flex items-end">
               <button 
                 onClick={() => setFilters({ search: '', herdId: '', status: '', gender: '' })}
-                className="w-full py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-medium"
+                className="w-full py-2.5 text-sm text-neutral-600 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-600 rounded-lg transition-colors font-medium"
               >
                 Limpar Filtros
               </button>

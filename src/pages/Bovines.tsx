@@ -57,35 +57,32 @@ export function Bovines() {
         <SyncIndicator />
       </div>
 
-      <main className="w-full p-4">
-        <div className="flex gap-2 mb-6 items-start">
-          <div className="flex-1">
-            <BovineFilters
-              filters={filters}
-              setFilters={setFilters}
-              herds={herds}
-            />
-          </div>
-
-          <button
-            onClick={() => {
-              const newMode = !isSelectionMode;
-              setIsSelectionMode(newMode);
-              if (!newMode) selection.clear();
-            }}
-            className={`
-               p-3 rounded-xl border shadow-sm transition-all h-[50px] w-[50px] flex items-center justify-center
-               ${
-                 isSelectionMode
-                   ? "bg-primary-50 border-primary-200 text-primary-600 dark:bg-primary-900/20 dark:border-primary-800 dark:text-primary-400"
-                   : "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400"
-               }
-             `}
-            title="Seleção em Lote"
-          >
-            <CheckSquare size={20} />
-          </button>
-        </div>
+      <main className="max-w-3xl mx-auto p-4">
+        <BovineFilters
+          filters={filters}
+          setFilters={setFilters}
+          herds={herds}
+          extraActions={
+            <button
+              onClick={() => {
+                const newMode = !isSelectionMode;
+                setIsSelectionMode(newMode);
+                if (!newMode) selection.clear();
+              }}
+              className={`
+                 p-3 rounded-xl border shadow-sm transition-all relative
+                 ${
+                   isSelectionMode
+                     ? "bg-secondary-50 border-secondary-200 text-secondary-600 dark:bg-secondary-900/20 dark:border-secondary-800 dark:text-secondary-400"
+                     : "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400"
+                 }
+               `}
+              title="Seleção em Lote"
+            >
+              <CheckSquare size={20} />
+            </button>
+          }
+        />
 
         {!bovines ? (
           <div className="flex justify-center py-12">
@@ -120,8 +117,8 @@ export function Bovines() {
                   avatarChar={bovine.name.charAt(0)}
                   avatarColorClass={
                     bovine.gender === "MACHO"
-                      ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400"
-                      : "bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400"
+                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                      : "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
                   }
                   status={bovine.syncStatus}
                   selectable={isSelectionMode}
@@ -133,6 +130,7 @@ export function Bovines() {
                   onDelete={() =>
                     bovine.id && requestDelete(bovine.id, bovine.name)
                   }
+                  variant="secondary"
                 />
               ))
             )}

@@ -35,12 +35,12 @@ export function useDashboardController() {
     {
       name: "Machos",
       value: bovines?.filter((b) => b.gender === "MACHO").length || 0,
-      fill: "rgb(var(--color-primary-600))",
+      fill: "#2563eb", // blue-600
     },
     {
       name: "Fêmeas",
       value: bovines?.filter((b) => b.gender === "FEMEA").length || 0,
-      fill: "rgb(var(--color-accent-500))",
+      fill: "#db2777", // pink-600
     },
   ];
 

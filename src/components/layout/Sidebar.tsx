@@ -14,7 +14,14 @@ export function Sidebar() {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const activeClass = "bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400 font-medium";
+  const getActiveClass = (path: string) => {
+    const base = "font-medium";
+    if (path === '/') return `${base} bg-tertiary-50 text-tertiary-600 dark:bg-tertiary-900/20 dark:text-tertiary-400`;
+    if (path === '/herds') return `${base} bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400`;
+    if (path === '/bovines') return `${base} bg-secondary-50 text-secondary-600 dark:bg-secondary-900/20 dark:text-secondary-400`;
+    return base; // Fallback
+  };
+
   const inactiveClass = "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800";
 
   return (
@@ -82,7 +89,7 @@ export function Sidebar() {
         <Link
           to="/"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/') ? activeClass : inactiveClass
+            isActive('/') ? getActiveClass('/') : inactiveClass
           }`}
         >
           <LayoutDashboard size={22} />
@@ -92,7 +99,7 @@ export function Sidebar() {
         <Link
           to="/herds"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/herds') ? activeClass : inactiveClass
+            isActive('/herds') ? getActiveClass('/herds') : inactiveClass
           }`}
         >
           <Layers size={22} />
@@ -102,7 +109,7 @@ export function Sidebar() {
         <Link
           to="/bovines"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/bovines') ? activeClass : inactiveClass
+            isActive('/bovines') ? getActiveClass('/bovines') : inactiveClass
           }`}
         >
           <Beef size={22} />

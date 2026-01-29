@@ -8,29 +8,41 @@
 
 @layer base {
   :root {
-    --color-primary-50: 249 252 235;
-    --color-primary-100: 239 248 206;
-    --color-primary-200: 224 242 163;
-    --color-primary-300: 204 232 110;
-    --color-primary-400: 185 219 50;
-    --color-primary-500: 158 194 13;
-    --color-primary-600: 131 146 1; 
-    --color-primary-700: 101 114 4;
-    --color-primary-800: 82 91 10;
-    --color-primary-900: 68 76 14;
-    --color-primary-950: 36 41 3;
+    --color-secondary-50: 252 251 242;
+    --color-secondary-100: 247 244 217;
+    --color-secondary-200: 234 226 153;
+    --color-secondary-300: 218 205 77;
+    --color-secondary-400: 203 184 2;
+    --color-secondary-500: 182 165 1;
+    --color-secondary-600: 152 138 1; 
+    --color-secondary-700: 111 101 1;
+    --color-secondary-800: 71 64 0;
+    --color-secondary-900: 40 36 0;
+    --color-secondary-950: 20 18 0;
 
-    --color-secondary-50: 255 253 235;
-    --color-secondary-100: 255 249 205;
-    --color-secondary-200: 255 242 160;
-    --color-secondary-300: 255 230 100;
-    --color-secondary-400: 254 212 3;
-    --color-secondary-500: 235 189 0;
-    --color-secondary-600: 203 152 2;
-    --color-secondary-700: 164 114 4;
-    --color-secondary-800: 138 92 10;
-    --color-secondary-900: 116 75 14;
-    --color-secondary-950: 66 40 4;
+    --color-tertiary-50: 254 252 242;
+    --color-tertiary-100: 254 248 217;
+    --color-tertiary-200: 254 237 154;
+    --color-tertiary-300: 254 224 78;
+    --color-tertiary-400: 254 212 3;
+    --color-tertiary-500: 228 190 2;
+    --color-tertiary-600: 190 159 2;
+    --color-tertiary-700: 139 116 1;
+    --color-tertiary-800: 88 74 1;
+    --color-tertiary-900: 50 42 0;
+    --color-tertiary-950: 25 21 0;
+
+    --color-primary-50: 248 249 242;
+    --color-primary-100: 236 238 216;
+    --color-primary-200: 205 211 153;
+    --color-primary-300: 168 178 77;
+    --color-primary-400: 131 146 1;
+    --color-primary-500: 117 131 0;
+    --color-primary-600: 98 109 0;
+    --color-primary-700: 72 80 0;
+    --color-primary-800: 45 51 0;
+    --color-primary-900: 26 29 0;
+    --color-primary-950: 13 14 0;
 
     --color-neutral-50: 247 248 250;
     --color-neutral-100: 236 238 241;
