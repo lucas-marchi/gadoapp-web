@@ -39,14 +39,10 @@ export const bovineService = {
   },
 
   save: async (dto: BovineDTO, id?: number) => {
-    console.log("SAVE BOVINE CHAMADO", dto);
-
     const newSyncStatus: "updated" | "created" = id ? "updated" : "created";
 
     const herd = await db.herds.get(dto.herdId);
     const serverHerdId = herd?.serverId || undefined;
-
-    console.log("Novo Rebanho Local:", dto.herdId, "ServerID:", serverHerdId);
 
     const payload = {
       ...dto,
@@ -81,11 +77,11 @@ export const bovineService = {
           syncStatus: "updated",
           updatedAt: new Date().toISOString(),
         };
-
+        
         if (targetServerId) {
-          updatePayload.serverHerdId = targetServerId;
+            updatePayload.serverHerdId = targetServerId;
         } else {
-          updatePayload.serverHerdId = undefined;
+            updatePayload.serverHerdId = undefined;
         }
 
         await db.bovines.update(id, updatePayload);
@@ -99,6 +95,18 @@ export const bovineService = {
         await db.bovines.update(id, {
           active: false,
           syncStatus: "deleted",
+          updatedAt: new Date().toISOString(),
+        });
+      }
+    });
+  },
+
+  batchUpdateStatus: async (ids: number[], status: string) => {
+    return db.transaction("rw", db.bovines, async () => {
+      for (const id of ids) {
+        await db.bovines.update(id, {
+          status: status,
+          syncStatus: "updated",
           updatedAt: new Date().toISOString(),
         });
       }

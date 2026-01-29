@@ -5,9 +5,11 @@ import { Plus } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { DataCard } from "../components/ui/DataCard";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { useNavigate } from "react-router-dom";
 
 export function Herds() {
   const { openHerdModal } = useModals();
+  const navigate = useNavigate();
 
   const {
     herds,
@@ -15,12 +17,11 @@ export function Herds() {
     setDeleteModalOpen,
     requestDelete,
     confirmDelete,
-    herdToDelete
+    herdToDelete,
   } = useHerdsController();
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
-            
       <MobileHeader title="Meus Rebanhos" />
 
       {/* HEADER DESKTOP */}
@@ -55,9 +56,10 @@ export function Herds() {
                 <DataCard
                   key={herd.id}
                   title={herd.name}
-                  subtitle={`${herd.active ? "Ativo" : "Inativo"}`}
+                  subtitle="Ver animais"
                   avatarChar={herd.name.charAt(0)}
                   status={herd.syncStatus}
+                  onClick={() => navigate(`/bovines?herdId=${herd.id}`)}
                   onEdit={() => openHerdModal(herd.id, herd)}
                   onDelete={() => herd.id && requestDelete(herd.id, herd.name)}
                 />

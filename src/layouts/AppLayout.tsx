@@ -5,6 +5,7 @@ import { HerdFormModal } from '../components/features/herds/HerdFormModal';
 import { BovineFormModal } from '../components/features/bovines/BovineFormModal';
 import type { ReactNode } from 'react';
 import { Sidebar } from '../components/layout/Sidebar';
+import { BovineDetailsModal } from '../components/features/bovines/BovineDetailsModal';
 
 export function AppLayout({ children }: { children: ReactNode }) {
   return (
@@ -21,6 +22,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           
           <HerdFormModal />
           <BovineFormModal />
+          <BovineDetailsModal />
           
         </div>
       </ModalProvider>

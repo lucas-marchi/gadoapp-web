@@ -142,25 +142,32 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         }
 
         // 2.2 PUSH BOVINES
+        const allBovinesLookup = await db.bovines.toArray();
         const unsyncedBovines = await db.bovines
           .where("syncStatus")
           .anyOf("created", "updated", "deleted")
           .toArray();
 
         if (unsyncedBovines.length > 0) {
-          const dtos = unsyncedBovines.map((b) => ({
-            id: b.serverId,
-            name: b.name,
-            status: b.status,
-            gender: b.gender,
-            breed: b.breed,
-            weight: b.weight,
-            birth: b.birth,
-            description: b.description,
-            herdId: b.serverHerdId,
-            active: b.active,
-            // momId, dadId (Futuro: mesma lógica de serverId)
-          }));
+          const dtos = unsyncedBovines.map((b) => {
+            const mom = b.momId ? allBovinesLookup.find(m => m.id === b.momId) : null;
+            const dad = b.dadId ? allBovinesLookup.find(d => d.id === b.dadId) : null;
+
+            return {
+              id: b.serverId,
+              name: b.name,
+              status: b.status,
+              gender: b.gender,
+              breed: b.breed,
+              weight: b.weight,
+              birth: b.birth,
+              description: b.description,
+              herdId: b.serverHerdId,
+              active: b.active,
+              momId: mom?.serverId || null,
+              dadId: dad?.serverId || null,
+            };
+          });
 
           await api.post("/sync/bovines/push", { data: dtos });
 

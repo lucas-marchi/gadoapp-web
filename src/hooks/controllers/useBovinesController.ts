@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { db } from "../../db/db";
 import { toast } from "sonner";
 import { useSync } from "../../contexts/SyncContext";
 import { useSelection } from "../useSelection";
 import { bovineService, type BovineDTO } from "../../services/bovineService";
+import { useSearchParams } from "react-router-dom";
 
 const INITIAL_FORM_STATE = {
   name: "",
@@ -21,8 +22,9 @@ const INITIAL_FORM_STATE = {
 
 export function useBovinesController() {
   const { syncNow } = useSync();
+  const [searchParams, setSearchParams] = useSearchParams();
   
-  const [filters, setFilters] = useState({ search: "", herdId: "", status: "", gender: "" });
+  const [filters, setFilters] = useState({ search: "", herdId: searchParams.get("herdId") || "", status: "", gender: "" });
   
   const bovines = useLiveQuery(() => bovineService.list(filters), [filters]);
   const herds = useLiveQuery(() => db.herds.filter((h) => h.active !== false).toArray());
@@ -42,6 +44,16 @@ export function useBovinesController() {
   const toggleModal = (modal: keyof typeof modals, state: boolean) => {
     setModals(prev => ({ ...prev, [modal]: state }));
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (filters.herdId) params.set('herdId', filters.herdId);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.gender) params.set('gender', filters.gender);
+    if (filters.search) params.set('search', filters.search);
+    
+    setSearchParams(params, { replace: true });
+  }, [filters, setSearchParams]);
 
   function openCreateModal() {
     setEditingId(null);
@@ -101,6 +113,19 @@ export function useBovinesController() {
     toast.success("Bovinos excluídos");
   }
 
+  async function batchUpdateStatus(status: string) {
+    if (!selection.selectedIds.length) return;
+    
+    try {
+      await bovineService.batchUpdateStatus(selection.selectedIds, status);
+      selection.clear();
+      syncNow();
+      toast.success(`Status atualizado para ${status}`);
+    } catch (error) {
+      toast.error("Erro ao atualizar status em lote");
+    }
+  }
+
   async function batchMove(targetHerdId: number) {
     await bovineService.batchMove(selection.selectedIds, targetHerdId);
     toggleModal('move', false);
@@ -143,6 +168,7 @@ export function useBovinesController() {
     confirmDeleteSingle,
     closeModals: () => setModals({ createEdit: false, move: false, delete: false }),
     batchDelete,
+    batchUpdateStatus,
     batchMove,
     openMoveModal: () => selection.selectedIds.length > 0 && toggleModal('move', true),
   };

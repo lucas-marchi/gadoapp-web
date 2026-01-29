@@ -11,6 +11,10 @@ export function BovineFormModal() {
   const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData } = useModals();
   const { syncNow } = useSync();
   const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
+  const allBovines = useLiveQuery(() => db.bovines.filter(b => b.active !== false).toArray());
+  const potentialMoms = allBovines?.filter(b => b.gender === 'FEMEA' && b.id !== bovineEditingId) || [];
+  const potentialDads = allBovines?.filter(b => b.gender === 'MACHO' && b.id !== bovineEditingId) || [];
+
 
   const [formData, setFormData] = useState({
     name: '',
@@ -213,6 +217,30 @@ export function BovineFormModal() {
                 setFormData({ ...formData, birth: e.target.value })
               }
             />
+          </div>
+
+          {/* Mãe e Pai (Select) */}
+          <div>
+            <label className="label-text">Mãe</label>
+            <select 
+              className="input-field"
+              value={formData.momId}
+              onChange={e => setFormData({...formData, momId: e.target.value})}
+            >
+              <option value="">Nenhuma</option>
+              {potentialMoms.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label-text">Pai</label>
+            <select 
+              className="input-field"
+              value={formData.dadId}
+              onChange={e => setFormData({...formData, dadId: e.target.value})}
+            >
+              <option value="">Nenhum</option>
+              {potentialDads.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
           </div>
 
           {/* Descrição */}

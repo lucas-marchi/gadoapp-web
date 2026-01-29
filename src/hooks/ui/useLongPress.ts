@@ -18,6 +18,9 @@ export function useLongPress(
       timeout.current = setTimeout(() => {
         onLongPress();
         setLongPressTriggered(true);
+        if (navigator.vibrate) {
+          navigator.vibrate(50);
+        }
       }, delay);
     },
     [onLongPress, delay, shouldPreventDefault]

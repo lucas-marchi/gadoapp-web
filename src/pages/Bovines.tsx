@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { useModals } from '../contexts/ModalContext';
-import { useBovinesController } from '../hooks/controllers/useBovinesController';
-import { MobileHeader } from '../components/layout/MobileHeader';
-import { SyncIndicator } from '../components/features/shared/SyncIndicator';
-import { BovineFilters } from '../components/features/bovines/BovineFilters';
-import { BatchActionBar } from '../components/features/shared/BatchActionBar';
-import { Plus, CheckSquare } from 'lucide-react';
-import { DataCard } from '../components/ui/DataCard';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { MoveBovinesModal } from '../components/features/bovines/MoveBovinesModal';
+import { useState, useEffect } from "react";
+import { useModals } from "../contexts/ModalContext";
+import { useBovinesController } from "../hooks/controllers/useBovinesController";
+import { MobileHeader } from "../components/layout/MobileHeader";
+import { SyncIndicator } from "../components/features/shared/SyncIndicator";
+import { BovineFilters } from "../components/features/bovines/BovineFilters";
+import { BatchActionBar } from "../components/features/shared/BatchActionBar";
+import { Plus, CheckSquare } from "lucide-react";
+import { DataCard } from "../components/ui/DataCard";
+import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { MoveBovinesModal } from "../components/features/bovines/MoveBovinesModal";
 
 export function Bovines() {
-  const { openBovineModal } = useModals();
+  const { openBovineModal, openBovineDetails } = useModals();
 
   const {
     bovines,
@@ -24,13 +24,14 @@ export function Bovines() {
     requestDelete,
     confirmDeleteSingle,
     batchDelete,
+    batchUpdateStatus,
     batchMove,
     openMoveModal,
-    bovineToDelete 
+    bovineToDelete,
   } = useBovinesController();
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  
+
   useEffect(() => {
     if (selection.selectedIds.length > 0) setIsSelectionMode(true);
   }, [selection.selectedIds]);
@@ -47,7 +48,6 @@ export function Bovines() {
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
-      
       <MobileHeader title="Meus Bovinos" />
 
       <div className="hidden md:flex justify-between items-center max-w-3xl mx-auto pt-8 px-4 mb-6">
@@ -57,29 +57,34 @@ export function Bovines() {
         <SyncIndicator />
       </div>
 
-      <main className="max-w-3xl mx-auto p-4">
-        
+      <main className="w-full p-4">
         <div className="flex gap-2 mb-6 items-start">
           <div className="flex-1">
-             <BovineFilters filters={filters} setFilters={setFilters} herds={herds} />
+            <BovineFilters
+              filters={filters}
+              setFilters={setFilters}
+              herds={herds}
+            />
           </div>
-          
-          <button 
-             onClick={() => {
-               const newMode = !isSelectionMode;
-               setIsSelectionMode(newMode);
-               if (!newMode) selection.clear();
-             }}
-             className={`
+
+          <button
+            onClick={() => {
+              const newMode = !isSelectionMode;
+              setIsSelectionMode(newMode);
+              if (!newMode) selection.clear();
+            }}
+            className={`
                p-3 rounded-xl border shadow-sm transition-all h-[50px] w-[50px] flex items-center justify-center
-               ${isSelectionMode 
-                 ? 'bg-primary-50 border-primary-200 text-primary-600 dark:bg-primary-900/20 dark:border-primary-800 dark:text-primary-400' 
-                 : 'bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400'}
+               ${
+                 isSelectionMode
+                   ? "bg-primary-50 border-primary-200 text-primary-600 dark:bg-primary-900/20 dark:border-primary-800 dark:text-primary-400"
+                   : "bg-white dark:bg-neutral-800 border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400"
+               }
              `}
-             title="Seleção em Lote"
-           >
-             <CheckSquare size={20} />
-           </button>
+            title="Seleção em Lote"
+          >
+            <CheckSquare size={20} />
+          </button>
         </div>
 
         {!bovines ? (
@@ -119,12 +124,11 @@ export function Bovines() {
                       : "bg-accent-50 text-accent-600 dark:bg-accent-900/30 dark:text-accent-400"
                   }
                   status={bovine.syncStatus}
-                  
                   selectable={isSelectionMode}
                   isSelected={selection.selectedIds.includes(bovine.id!)}
+                  onClick={() => openBovineDetails(bovine)}
                   onSelect={() => selection.toggle(bovine.id!)}
                   onLongPress={() => handleLongPress(bovine.id!)}
-
                   onEdit={() => openBovineModal(bovine.id, bovine)}
                   onDelete={() =>
                     bovine.id && requestDelete(bovine.id, bovine.name)
@@ -138,21 +142,29 @@ export function Bovines() {
 
       {!isSelectionMode && (
         <button
-            onClick={() => openBovineModal()}
-            className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
+          onClick={() => openBovineModal()}
+          className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
         >
-            <Plus size={28} />
+          <Plus size={28} />
         </button>
       )}
 
-      <BatchActionBar 
+      <BatchActionBar
         count={selection.selectedIds.length}
         onClear={() => {
-            selection.clear();
-            setIsSelectionMode(false);
+          selection.clear();
+          setIsSelectionMode(false);
         }}
         onDelete={batchDelete}
         onMove={openMoveModal}
+        onEdit={() => {
+          const id = selection.selectedIds[0];
+          const bovine = bovines?.find((b) => b.id === id);
+          if (bovine) openBovineModal(bovine.id, bovine);
+          selection.clear();
+          setIsSelectionMode(false);
+        }}
+        onSell={() => batchUpdateStatus("VENDIDO")}
       />
 
       <ConfirmModal

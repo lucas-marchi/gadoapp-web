@@ -14,6 +14,11 @@ interface ModalContextType {
   closeBovineModal: () => void;
   bovineEditingId: number | null;
   bovineInitialData: any;
+
+  isBovineDetailsOpen: boolean;
+  openBovineDetails: (bovine: any) => void;
+  closeBovineDetails: () => void;
+  selectedBovine: any | null;
 }
 
 const ModalContext = createContext<ModalContextType>({} as ModalContextType);
@@ -26,6 +31,19 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   const [isBovineModalOpen, setIsBovineModalOpen] = useState(false);
   const [bovineEditingId, setBovineEditingId] = useState<number | null>(null);
   const [bovineInitialData, setBovineInitialData] = useState<any>(null);
+
+  const [isBovineDetailsOpen, setIsBovineDetailsOpen] = useState(false);
+  const [selectedBovine, setSelectedBovine] = useState<any | null>(null);
+
+  const openBovineDetails = (bovine: any) => {
+    setSelectedBovine(bovine);
+    setIsBovineDetailsOpen(true);
+  };
+
+  const closeBovineDetails = () => {
+    setIsBovineDetailsOpen(false);
+    setSelectedBovine(null);
+  };
 
   const openHerdModal = (id?: number, data?: any) => {
     setHerdEditingId(id || null);
@@ -54,7 +72,8 @@ export function ModalProvider({ children }: { children: ReactNode }) {
   return (
     <ModalContext.Provider value={{
       isHerdModalOpen, openHerdModal, closeHerdModal, herdEditingId, herdInitialData,
-      isBovineModalOpen, openBovineModal, closeBovineModal, bovineEditingId, bovineInitialData
+      isBovineModalOpen, openBovineModal, closeBovineModal, bovineEditingId, bovineInitialData,
+      isBovineDetailsOpen, openBovineDetails, closeBovineDetails, selectedBovine,
     }}>
       {children}
     </ModalContext.Provider>
