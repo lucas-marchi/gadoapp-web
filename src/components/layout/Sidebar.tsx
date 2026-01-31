@@ -22,11 +22,11 @@ export function Sidebar() {
     return base; // Fallback
   };
 
-  const inactiveClass = "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800";
+  const inactiveClass = "text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-white/5";
 
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 bg-white dark:bg-neutral-800 border-r border-neutral-200 dark:border-neutral-700 p-6 z-50">
-      
+
       {/* Logo */}
       <div className="flex flex-col items-center justify-center mb-10 pt-2">
         <div className="w-40 h-40 bg-white dark:bg-neutral-800 rounded-full flex items-center justify-center border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden p-6 mb-3">
@@ -85,12 +85,11 @@ export function Sidebar() {
 
       {/* Navegação */}
       <nav className="flex-1 space-y-2">
-        
+
         <Link
           to="/"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/') ? getActiveClass('/') : inactiveClass
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive('/') ? getActiveClass('/') : inactiveClass
+            }`}
         >
           <LayoutDashboard size={22} />
           <span>Visão Geral</span>
@@ -98,9 +97,8 @@ export function Sidebar() {
 
         <Link
           to="/herds"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/herds') ? getActiveClass('/herds') : inactiveClass
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive('/herds') ? getActiveClass('/herds') : inactiveClass
+            }`}
         >
           <Layers size={22} />
           <span>Rebanhos</span>
@@ -108,9 +106,8 @@ export function Sidebar() {
 
         <Link
           to="/bovines"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${
-            isActive('/bovines') ? getActiveClass('/bovines') : inactiveClass
-          }`}
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive('/bovines') ? getActiveClass('/bovines') : inactiveClass
+            }`}
         >
           <Beef size={22} />
           <span>Bovinos</span>
@@ -120,15 +117,15 @@ export function Sidebar() {
 
       {/* Footer da Sidebar */}
       <div className="pt-6 border-t border-neutral-100 dark:border-neutral-700 space-y-2">
-        <button 
+        <button
           onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-neutral-800 transition-colors"
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-neutral-500 hover:bg-neutral-50 dark:text-neutral-400 dark:hover:bg-white/5 transition-colors"
         >
           {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
           <span>{theme === 'dark' ? 'Modo Claro' : 'Modo Escuro'}</span>
         </button>
-        
-        <button 
+
+        <button
           onClick={logout}
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
         >

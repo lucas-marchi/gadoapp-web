@@ -1,29 +1,11 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "sonner";
 import { Login } from "./pages/Login";
 import { Herds } from "./pages/Herds";
 import { Bovines } from "./pages/Bovines";
-import { useAuth } from "./contexts/AuthContext";
-import { AppLayout } from "./layouts/AppLayout";
-import type { JSX } from "react";
 import { Dashboard } from "./pages/Dashboard";
 
-function PrivateRoute({ children }: { children: JSX.Element }) {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading)
-    return (
-      <div className="flex h-screen items-center justify-center bg-neutral-50 dark:bg-neutral-900 text-neutral-500">
-        Carregando...
-      </div>
-    );
-
-  return isAuthenticated ? (
-    <AppLayout>{children}</AppLayout>
-  ) : (
-    <Navigate to="/login" />
-  );
-}
+import { PrivateRoute } from "./components/auth/PrivateRoute";
 
 function App() {
   return (

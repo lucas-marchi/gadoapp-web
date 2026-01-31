@@ -6,6 +6,10 @@ import { useModals } from '../../../contexts/ModalContext';
 import { useSync } from '../../../contexts/SyncContext';
 import { db } from '../../../db/db';
 import { bovineService, type BovineDTO } from '../../../services/bovineService';
+import { Input } from '../../ui/Input';
+import { Label } from '../../ui/Label';
+import { Select } from '../../ui/Select';
+import { Textarea } from '../../ui/Textarea';
 
 export function BovineFormModal() {
   const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData } = useModals();
@@ -66,8 +70,8 @@ export function BovineFormModal() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.name.trim() || !formData.herdId) {
-        toast.error("Preencha os campos obrigatórios");
-        return;
+      toast.error("Preencha os campos obrigatórios");
+      return;
     }
 
     try {
@@ -98,7 +102,7 @@ export function BovineFormModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm transition-opacity" onClick={closeBovineModal} />
-      
+
       <div className="bg-white dark:bg-neutral-800 w-full max-w-lg rounded-t-2xl sm:rounded-2xl shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200 max-h-[90vh] flex flex-col overflow-hidden">
         <div className="flex justify-between items-center p-6 border-b border-neutral-100 dark:border-neutral-700">
           <h2 className="text-xl font-bold text-neutral-800 dark:text-white">
@@ -110,160 +114,151 @@ export function BovineFormModal() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Nome e Brinco */}
-          <div>
-            <label className="label-text">Nome / Brinco *</label>
-            <input
-              type="text"
-              className="input-field"
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              placeholder="Ex: Mimosa, 154"
-            />
-          </div>
-
-          {/* Rebanho (Select) */}
-          <div>
-            <label className="label-text">Rebanho *</label>
-            <select
-              className="input-field"
-              value={formData.herdId}
-              onChange={(e) =>
-                setFormData({ ...formData, herdId: e.target.value })
-              }
-            >
-              <option value="">Selecione...</option>
-              {herds?.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Gênero */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Nome e Brinco */}
             <div>
-              <label className="label-text">Gênero</label>
-              <select
-                className="input-field"
-                value={formData.gender}
-                onChange={(e) =>
-                  setFormData({ ...formData, gender: e.target.value })
-                }
-              >
-                <option value="MACHO">Macho</option>
-                <option value="FEMEA">Fêmea</option>
-              </select>
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="label-text">Status</label>
-              <select
-                className="input-field"
-                value={formData.status}
-                onChange={(e) =>
-                  setFormData({ ...formData, status: e.target.value })
-                }
-              >
-                <option value="VIVO">Vivo</option>
-                <option value="MORTO">Morto</option>
-                <option value="VENDIDO">Vendido</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* Raça */}
-            <div>
-              <label className="label-text">Raça</label>
-              <input
+              <Label>Nome / Brinco *</Label>
+              <Input
                 type="text"
-                className="input-field"
-                value={formData.breed}
+                value={formData.name}
                 onChange={(e) =>
-                  setFormData({ ...formData, breed: e.target.value })
+                  setFormData({ ...formData, name: e.target.value })
                 }
-                placeholder="Ex: Nelore"
+                placeholder="Ex: Mimosa, 154"
               />
             </div>
 
-            {/* Peso */}
+            {/* Rebanho (Select) */}
             <div>
-              <label className="label-text">Peso (kg)</label>
-              <input
-                type="number"
-                className="input-field"
-                value={formData.weight}
+              <Label>Rebanho *</Label>
+              <Select
+                value={formData.herdId}
                 onChange={(e) =>
-                  setFormData({ ...formData, weight: e.target.value })
+                  setFormData({ ...formData, herdId: e.target.value })
                 }
-                placeholder="0.0"
+              >
+                <option value="">Selecione...</option>
+                {herds?.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Gênero */}
+              <div>
+                <Label>Gênero</Label>
+                <Select
+                  value={formData.gender}
+                  onChange={(e) =>
+                    setFormData({ ...formData, gender: e.target.value })
+                  }
+                >
+                  <option value="MACHO">Macho</option>
+                  <option value="FEMEA">Fêmea</option>
+                </Select>
+              </div>
+
+              {/* Status */}
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={formData.status}
+                  onChange={(e) =>
+                    setFormData({ ...formData, status: e.target.value })
+                  }
+                >
+                  <option value="VIVO">Vivo</option>
+                  <option value="MORTO">Morto</option>
+                  <option value="VENDIDO">Vendido</option>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {/* Raça */}
+              <div>
+                <Label>Raça</Label>
+                <Input
+                  type="text"
+                  value={formData.breed}
+                  onChange={(e) =>
+                    setFormData({ ...formData, breed: e.target.value })
+                  }
+                  placeholder="Ex: Nelore"
+                />
+              </div>
+
+              {/* Peso */}
+              <div>
+                <Label>Peso (kg)</Label>
+                <Input
+                  type="number"
+                  value={formData.weight}
+                  onChange={(e) =>
+                    setFormData({ ...formData, weight: e.target.value })
+                  }
+                  placeholder="0.0"
+                />
+              </div>
+            </div>
+
+            {/* Data Nascimento */}
+            <div>
+              <Label>Data de Nascimento *</Label>
+              <Input
+                type="date"
+                value={formData.birth}
+                onChange={(e) =>
+                  setFormData({ ...formData, birth: e.target.value })
+                }
               />
             </div>
-          </div>
 
-          {/* Data Nascimento */}
-          <div>
-            <label className="label-text">Data de Nascimento *</label>
-            <input
-              type="date"
-              className="input-field"
-              value={formData.birth}
-              onChange={(e) =>
-                setFormData({ ...formData, birth: e.target.value })
-              }
-            />
-          </div>
+            {/* Mãe e Pai (Select) */}
+            <div>
+              <Label>Mãe</Label>
+              <Select
+                value={formData.momId}
+                onChange={e => setFormData({ ...formData, momId: e.target.value })}
+              >
+                <option value="">Nenhuma</option>
+                {potentialMoms.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+              </Select>
+            </div>
+            <div>
+              <Label>Pai</Label>
+              <Select
+                value={formData.dadId}
+                onChange={e => setFormData({ ...formData, dadId: e.target.value })}
+              >
+                <option value="">Nenhum</option>
+                {potentialDads.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+              </Select>
+            </div>
 
-          {/* Mãe e Pai (Select) */}
-          <div>
-            <label className="label-text">Mãe</label>
-            <select 
-              className="input-field"
-              value={formData.momId}
-              onChange={e => setFormData({...formData, momId: e.target.value})}
+            {/* Descrição */}
+            <div>
+              <Label>Observações</Label>
+              <Textarea
+                className="min-h-[80px]"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Detalhes adicionais..."
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-secondary-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-secondary-200 dark:shadow-none active:scale-[0.98] transition-transform mt-4"
             >
-              <option value="">Nenhuma</option>
-              {potentialMoms.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="label-text">Pai</label>
-            <select 
-              className="input-field"
-              value={formData.dadId}
-              onChange={e => setFormData({...formData, dadId: e.target.value})}
-            >
-              <option value="">Nenhum</option>
-              {potentialDads.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
-          </div>
-
-          {/* Descrição */}
-          <div>
-            <label className="label-text">Observações</label>
-            <textarea
-              className="input-field min-h-[80px]"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Detalhes adicionais..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full bg-secondary-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-secondary-200 dark:shadow-none active:scale-[0.98] transition-transform mt-4"
-          >
-            Salvar
-          </button>
-        </form>
+              Salvar
+            </button>
+          </form>
         </div>
       </div>
     </div>
