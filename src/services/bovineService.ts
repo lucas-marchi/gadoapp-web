@@ -11,6 +11,9 @@ export interface BovineDTO {
   herdId: number;
   momId?: number;
   dadId?: number;
+  tempId?: number;
+  momTempId?: number;
+  dadTempId?: number;
 }
 
 export const bovineService = {
@@ -77,11 +80,11 @@ export const bovineService = {
           syncStatus: "updated",
           updatedAt: new Date().toISOString(),
         };
-        
+
         if (targetServerId) {
-            updatePayload.serverHerdId = targetServerId;
+          updatePayload.serverHerdId = targetServerId;
         } else {
-            updatePayload.serverHerdId = undefined;
+          updatePayload.serverHerdId = undefined;
         }
 
         await db.bovines.update(id, updatePayload);

@@ -150,8 +150,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
         if (unsyncedBovines.length > 0) {
           const dtos = unsyncedBovines.map((b) => {
-            const mom = b.momId ? allBovinesLookup.find(m => m.id === b.momId) : null;
-            const dad = b.dadId ? allBovinesLookup.find(d => d.id === b.dadId) : null;
+            const mom = b.momId
+              ? allBovinesLookup.find((m) => m.id === b.momId)
+              : null;
+            const dad = b.dadId
+              ? allBovinesLookup.find((d) => d.id === b.dadId)
+              : null;
 
             return {
               id: b.serverId,
@@ -166,6 +170,9 @@ export function SyncProvider({ children }: { children: ReactNode }) {
               active: b.active,
               momId: mom?.serverId || null,
               dadId: dad?.serverId || null,
+              tempId: b.id,
+              momTempId: b.momId,
+              dadTempId: b.dadId,
             };
           });
 
