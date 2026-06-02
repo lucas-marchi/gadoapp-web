@@ -1,22 +1,25 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { Input } from "../../ui/Input";
 import { Label } from "../../ui/Label";
 import { Select } from "../../ui/Select";
 import { Textarea } from "../../ui/Textarea";
 import type { Bovine } from "../../../db/db";
+import { useModals } from "../../../contexts/ModalContext";
 
 interface BirthFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (data: { calfId?: number; birthDate: string; notes?: string }) => void;
   allBovines: Bovine[];
+  motherId?: number;
 }
 
-export function BirthFormModal({ isOpen, onClose, onSave, allBovines }: BirthFormModalProps) {
+export function BirthFormModal({ isOpen, onClose, onSave, allBovines, motherId }: BirthFormModalProps) {
   const [calfId, setCalfId] = useState("");
   const [birthDate, setBirthDate] = useState(new Date().toISOString().split("T")[0]);
   const [notes, setNotes] = useState("");
+  const { openBovineModal } = useModals();
 
   if (!isOpen) return null;
 
@@ -32,6 +35,19 @@ export function BirthFormModal({ isOpen, onClose, onSave, allBovines }: BirthFor
     setCalfId("");
     setBirthDate(new Date().toISOString().split("T")[0]);
     setNotes("");
+    onClose();
+  };
+
+  const handleCreateNewCalf = () => {
+    // Pre-populate the bovine form with this mother as momId
+    openBovineModal(undefined, {
+      name: "",
+      status: "VIVO",
+      gender: "MACHO",
+      breed: "",
+      birth: birthDate,
+      momId: motherId,
+    } as any);
     onClose();
   };
 
@@ -78,6 +94,16 @@ export function BirthFormModal({ isOpen, onClose, onSave, allBovines }: BirthFor
               ))}
             </Select>
           </div>
+
+          {/* Inline create calf button */}
+          <button
+            type="button"
+            onClick={handleCreateNewCalf}
+            className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-secondary-300 dark:border-secondary-700 text-secondary-600 dark:text-secondary-400 rounded-xl text-sm font-medium hover:bg-secondary-50 dark:hover:bg-secondary-900/20 transition-colors"
+          >
+            <Plus size={16} />
+            Criar Novo Bovino como Cria
+          </button>
 
           <div>
             <Label>Observações</Label>

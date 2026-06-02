@@ -1,141 +1,313 @@
 import { useLiveQuery } from "dexie-react-hooks";
+import { useMemo } from "react";
 import { db } from "../../db/db";
+import type { ExportColumn } from "../../lib/exportUtils";
 
-export function useReportsController() {
-  const bovines = useLiveQuery(() =>
-    db.bovines.filter((b) => b.active !== false).toArray(),
-  );
-  const allBovines = useLiveQuery(() => db.bovines.toArray());
+export type ReportType =
+  | "inventory"
+  | "weight_history"
+  | "births"
+  | "health"
+  | "mortality";
+
+export interface ReportFilters {
+  type: ReportType;
+  dateFrom: string;
+  dateTo: string;
+  herdId: string;
+}
+
+export function useReportsController(filters: ReportFilters) {
+  const bovines = useLiveQuery(() => db.bovines.toArray());
   const herds = useLiveQuery(() =>
     db.herds.filter((h) => h.active !== false).toArray(),
   );
-  const birthRecords = useLiveQuery(() =>
-    db.birthRecords.filter((r) => r.active !== false).toArray(),
-  );
-  const weightRecords = useLiveQuery(() =>
-    db.weightRecords.filter((r) => r.active !== false).toArray(),
-  );
-  const healthRecords = useLiveQuery(() =>
-    db.healthRecords.filter((r) => r.active !== false).toArray(),
-  );
+  const weightRecords = useLiveQuery(() => db.weightRecords.toArray());
+  const birthRecords = useLiveQuery(() => db.birthRecords.toArray());
+  const healthRecords = useLiveQuery(() => db.healthRecords.toArray());
 
-  const now = new Date();
-  const activeBovines = bovines || [];
-  const totalActive = activeBovines.length;
-  const females = activeBovines.filter((b) => b.gender === "FEMEA");
-  const totalFemales = females.length;
+  const activeBovines = bovines?.filter((b) => b.active !== false) || [];
 
-  // ===== BIRTH RATE =====
-  const birthsLast12Months = (birthRecords || []).filter((r) => {
-    const date = new Date(r.birthDate);
-    const diff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365);
-    return diff <= 1;
-  });
-  const birthRate =
-    totalFemales > 0
-      ? ((birthsLast12Months.length / totalFemales) * 100).toFixed(1)
-      : "0";
+  const dateFrom = filters.dateFrom ? new Date(filters.dateFrom) : null;
+  const dateTo = filters.dateTo
+    ? new Date(new Date(filters.dateTo).getTime() + 86400000)
+    : null;
 
-  // ===== MORTALITY RATE =====
-  const deadBovines = (allBovines || []).filter((b) => b.status === "MORTO");
-  const totalEver = (allBovines || []).length;
-  const mortalityRate =
-    totalEver > 0
-      ? ((deadBovines.length / totalEver) * 100).toFixed(1)
-      : "0";
+  const herdFilter = filters.herdId ? Number(filters.herdId) : null;
 
-  // ===== AVERAGE WEIGHT GAIN =====
-  const avgWeightGain = (() => {
-    const records = weightRecords || [];
-    if (records.length < 2) return null;
+  const filteredBovines = useMemo(() => {
+    let result = activeBovines;
+    if (herdFilter) result = result.filter((b) => b.herdId === herdFilter);
+    return result;
+  }, [activeBovines, herdFilter]);
 
-    const byBovine = new Map<number, { first: number; last: number; days: number }>();
-    for (const r of records) {
-      const existing = byBovine.get(r.bovineId);
-      const date = new Date(r.recordedAt).getTime();
-      if (!existing) {
-        byBovine.set(r.bovineId, { first: r.weight, last: r.weight, days: 0 });
-      } else {
-        if (date > new Date(r.recordedAt).getTime()) {
-          existing.last = r.weight;
-        }
-      }
+  const filteredBovineIds = new Set(filteredBovines.map((b) => b.id));
+
+  const { data, columns } = useMemo(() => {
+    switch (filters.type) {
+      case "inventory":
+        return buildInventoryReport(filteredBovines, herds || []);
+      case "weight_history":
+        return buildWeightReport(
+          weightRecords || [],
+          bovines || [],
+          filteredBovineIds,
+          dateFrom,
+          dateTo,
+        );
+      case "births":
+        return buildBirthReport(
+          birthRecords || [],
+          bovines || [],
+          filteredBovineIds,
+          dateFrom,
+          dateTo,
+        );
+      case "health":
+        return buildHealthReport(
+          healthRecords || [],
+          bovines || [],
+          filteredBovineIds,
+          dateFrom,
+          dateTo,
+        );
+      case "mortality":
+        return buildMortalityReport(bovines || [], herds || [], herdFilter);
+      default:
+        return { data: [], columns: [] };
     }
-
-    const gains: number[] = [];
-    for (const [bovineId] of byBovine) {
-      const bovineRecords = records
-        .filter((r) => r.bovineId === bovineId)
-        .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
-      if (bovineRecords.length >= 2) {
-        const first = bovineRecords[0];
-        const last = bovineRecords[bovineRecords.length - 1];
-        gains.push(last.weight - first.weight);
-      }
-    }
-
-    if (gains.length === 0) return null;
-    const avg = gains.reduce((s, g) => s + g, 0) / gains.length;
-    return avg.toFixed(1);
-  })();
-
-  // ===== VACCINATION COVERAGE =====
-  const vaccineRecords = (healthRecords || []).filter((r) => r.type === "VACCINE");
-  const bovinesWithVaccine = new Set(vaccineRecords.map((r) => r.bovineId));
-  const vaccinationCoverage =
-    totalActive > 0
-      ? ((bovinesWithVaccine.size / totalActive) * 100).toFixed(1)
-      : "0";
-
-  // ===== OVERDUE VACCINES =====
-  const overdueVaccines = vaccineRecords.filter(
-    (r) => r.nextDueDate && new Date(r.nextDueDate) < now,
-  );
-
-  // ===== BIRTHS BY MONTH (last 12 months) =====
-  const birthsByMonth = (() => {
-    const months: { month: string; count: number }[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
-      const count = (birthRecords || []).filter((r) => {
-        const bd = new Date(r.birthDate);
-        return bd.getMonth() === d.getMonth() && bd.getFullYear() === d.getFullYear();
-      }).length;
-      months.push({ month: key, count });
-    }
-    return months;
-  })();
-
-  // ===== BY STATUS =====
-  const byStatus = [
-    { name: "Vivos", value: activeBovines.filter((b) => b.status === "VIVO").length, fill: "rgb(var(--color-secondary-500))" },
-    { name: "Vendidos", value: (allBovines || []).filter((b) => b.status === "VENDIDO").length, fill: "#eab308" },
-    { name: "Mortos", value: deadBovines.length, fill: "rgb(var(--color-danger-500))" },
-  ];
-
-  // ===== HERD DISTRIBUTION =====
-  const herdDistribution =
-    (herds || [])
-      .map((h) => ({
-        name: h.name,
-        value: activeBovines.filter((b) => b.herdId === h.id).length,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 8) || [];
+  }, [
+    filters.type,
+    filteredBovines,
+    weightRecords,
+    birthRecords,
+    healthRecords,
+    bovines,
+    herds,
+    dateFrom,
+    dateTo,
+    herdFilter,
+  ]);
 
   return {
-    totalActive,
-    totalFemales,
-    birthRate,
-    birthsLast12Months: birthsLast12Months.length,
-    mortalityRate,
-    deadCount: deadBovines.length,
-    avgWeightGain,
-    vaccinationCoverage,
-    overdueVaccinesCount: overdueVaccines.length,
-    birthsByMonth,
-    byStatus,
-    herdDistribution,
+    data,
+    columns,
+    herds: herds || [],
+    totalRows: data.length,
   };
+}
+
+// ========== REPORT BUILDERS ==========
+
+function buildInventoryReport(
+  bovines: any[],
+  herds: any[],
+): { data: Record<string, any>[]; columns: ExportColumn[] } {
+  const herdMap = new Map(herds.map((h) => [h.id, h.name]));
+
+  const columns: ExportColumn[] = [
+    { header: "Nome/Brinco", key: "name" },
+    { header: "Rebanho", key: "herd" },
+    { header: "Gênero", key: "gender" },
+    { header: "Status", key: "status" },
+    { header: "Raça", key: "breed" },
+    { header: "Peso (kg)", key: "weight" },
+    { header: "Nascimento", key: "birth" },
+    { header: "Mãe", key: "mom" },
+    { header: "Pai", key: "dad" },
+  ];
+
+  const data = bovines.map((b) => ({
+    name: b.name,
+    herd: herdMap.get(b.herdId) || "—",
+    gender: b.gender === "MACHO" ? "Macho" : "Fêmea",
+    status: formatStatus(b.status),
+    breed: b.breed || "—",
+    weight: b.weight || "—",
+    birth: formatDate(b.birth),
+    mom: bovines.find((x) => x.id === b.momId)?.name || "—",
+    dad: bovines.find((x) => x.id === b.dadId)?.name || "—",
+  }));
+
+  return { data, columns };
+}
+
+function buildWeightReport(
+  records: any[],
+  bovines: any[],
+  filteredIds: Set<number | undefined>,
+  dateFrom: Date | null,
+  dateTo: Date | null,
+): { data: Record<string, any>[]; columns: ExportColumn[] } {
+  const bovineMap = new Map(bovines.map((b) => [b.id, b.name]));
+
+  const columns: ExportColumn[] = [
+    { header: "Bovino", key: "bovine" },
+    { header: "Peso (kg)", key: "weight" },
+    { header: "Data", key: "date" },
+    { header: "Observações", key: "notes" },
+  ];
+
+  let filtered = records.filter(
+    (r) => r.active !== false && filteredIds.has(r.bovineId),
+  );
+  if (dateFrom)
+    filtered = filtered.filter((r) => new Date(r.recordedAt) >= dateFrom);
+  if (dateTo)
+    filtered = filtered.filter((r) => new Date(r.recordedAt) <= dateTo);
+
+  filtered.sort(
+    (a, b) =>
+      new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+  );
+
+  const data = filtered.map((r) => ({
+    bovine: bovineMap.get(r.bovineId) || `ID ${r.bovineId}`,
+    weight: r.weight,
+    date: formatDate(r.recordedAt),
+    notes: r.notes || "—",
+  }));
+
+  return { data, columns };
+}
+
+function buildBirthReport(
+  records: any[],
+  bovines: any[],
+  filteredIds: Set<number | undefined>,
+  dateFrom: Date | null,
+  dateTo: Date | null,
+): { data: Record<string, any>[]; columns: ExportColumn[] } {
+  const bovineMap = new Map(bovines.map((b) => [b.id, b.name]));
+
+  const columns: ExportColumn[] = [
+    { header: "Mãe", key: "mother" },
+    { header: "Cria", key: "calf" },
+    { header: "Data de Nascimento", key: "date" },
+    { header: "Observações", key: "notes" },
+  ];
+
+  let filtered = records.filter(
+    (r) => r.active !== false && filteredIds.has(r.motherId),
+  );
+  if (dateFrom)
+    filtered = filtered.filter((r) => new Date(r.birthDate) >= dateFrom);
+  if (dateTo)
+    filtered = filtered.filter((r) => new Date(r.birthDate) <= dateTo);
+
+  filtered.sort(
+    (a, b) =>
+      new Date(b.birthDate).getTime() - new Date(a.birthDate).getTime(),
+  );
+
+  const data = filtered.map((r) => ({
+    mother: bovineMap.get(r.motherId) || `ID ${r.motherId}`,
+    calf: r.calfId ? bovineMap.get(r.calfId) || `ID ${r.calfId}` : "—",
+    date: formatDate(r.birthDate),
+    notes: r.notes || "—",
+  }));
+
+  return { data, columns };
+}
+
+function buildHealthReport(
+  records: any[],
+  bovines: any[],
+  filteredIds: Set<number | undefined>,
+  dateFrom: Date | null,
+  dateTo: Date | null,
+): { data: Record<string, any>[]; columns: ExportColumn[] } {
+  const bovineMap = new Map(bovines.map((b) => [b.id, b.name]));
+
+  const columns: ExportColumn[] = [
+    { header: "Bovino", key: "bovine" },
+    { header: "Tipo", key: "type" },
+    { header: "Produto", key: "product" },
+    { header: "Data Aplicação", key: "appliedAt" },
+    { header: "Dosagem", key: "dosage" },
+    { header: "Veterinário", key: "vet" },
+    { header: "Próxima Dose", key: "nextDue" },
+    { header: "Observações", key: "notes" },
+  ];
+
+  let filtered = records.filter(
+    (r) => r.active !== false && filteredIds.has(r.bovineId),
+  );
+  if (dateFrom)
+    filtered = filtered.filter((r) => new Date(r.appliedAt) >= dateFrom);
+  if (dateTo)
+    filtered = filtered.filter((r) => new Date(r.appliedAt) <= dateTo);
+
+  filtered.sort(
+    (a, b) =>
+      new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime(),
+  );
+
+  const data = filtered.map((r) => ({
+    bovine: bovineMap.get(r.bovineId) || `ID ${r.bovineId}`,
+    type: r.type === "VACCINE" ? "Vacina" : "Medicamento",
+    product: r.productName,
+    appliedAt: formatDate(r.appliedAt),
+    dosage: r.dosage || "—",
+    vet: r.veterinarian || "—",
+    nextDue: r.nextDueDate ? formatDate(r.nextDueDate) : "—",
+    notes: r.notes || "—",
+  }));
+
+  return { data, columns };
+}
+
+function buildMortalityReport(
+  bovines: any[],
+  herds: any[],
+  herdFilter: number | null,
+): { data: Record<string, any>[]; columns: ExportColumn[] } {
+  const herdMap = new Map(herds.map((h) => [h.id, h.name]));
+
+  const columns: ExportColumn[] = [
+    { header: "Nome/Brinco", key: "name" },
+    { header: "Rebanho", key: "herd" },
+    { header: "Gênero", key: "gender" },
+    { header: "Raça", key: "breed" },
+    { header: "Nascimento", key: "birth" },
+    { header: "Descrição", key: "description" },
+  ];
+
+  let dead = bovines.filter((b) => b.status === "MORTO");
+  if (herdFilter) dead = dead.filter((b) => b.herdId === herdFilter);
+
+  const data = dead.map((b) => ({
+    name: b.name,
+    herd: herdMap.get(b.herdId) || "—",
+    gender: b.gender === "MACHO" ? "Macho" : "Fêmea",
+    breed: b.breed || "—",
+    birth: formatDate(b.birth),
+    description: b.description || "—",
+  }));
+
+  return { data, columns };
+}
+
+// ========== HELPERS ==========
+
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return "—";
+  try {
+    return new Date(dateStr).toLocaleDateString("pt-BR");
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatStatus(status: string): string {
+  switch (status) {
+    case "VIVO":
+      return "Vivo";
+    case "MORTO":
+      return "Morto";
+    case "VENDIDO":
+      return "Vendido";
+    default:
+      return status;
+  }
 }

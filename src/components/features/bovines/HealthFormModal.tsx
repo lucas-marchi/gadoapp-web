@@ -5,6 +5,35 @@ import { Label } from "../../ui/Label";
 import { Select } from "../../ui/Select";
 import { Textarea } from "../../ui/Textarea";
 
+const VACCINE_CATALOG = [
+  "Febre Aftosa",
+  "Brucelose (B19)",
+  "Raiva Bovina",
+  "Clostridioses (Polivalente)",
+  "IBR/BVD",
+  "Leptospirose",
+  "Carbúnculo Sintomático",
+  "Botulismo",
+  "Brucelose (RB51)",
+  "Manqueira",
+  "Tristeza Parasitária",
+];
+
+const MEDICATION_CATALOG = [
+  "Ivermectina",
+  "Doramectina",
+  "Albendazol",
+  "Oxitetraciclina",
+  "Florfenicol",
+  "Levamisol",
+  "Fipronil",
+  "Moxidectina",
+  "Abamectina",
+  "Cloridrato de Clortetraciclina",
+  "ADE (Vitaminas)",
+  "Anti-inflamatório (Flunixin)",
+];
+
 interface HealthFormModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,6 +86,9 @@ export function HealthFormModal({ isOpen, onClose, onSave }: HealthFormModalProp
     setNotes("");
   };
 
+  const catalog = type === "VACCINE" ? VACCINE_CATALOG : MEDICATION_CATALOG;
+  const datalistId = type === "VACCINE" ? "vaccine-list" : "medication-list";
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 sm:p-0">
       <div
@@ -82,7 +114,10 @@ export function HealthFormModal({ isOpen, onClose, onSave }: HealthFormModalProp
               <Label>Tipo *</Label>
               <Select
                 value={type}
-                onChange={(e) => setType(e.target.value as "VACCINE" | "MEDICATION")}
+                onChange={(e) => {
+                  setType(e.target.value as "VACCINE" | "MEDICATION");
+                  setProductName("");
+                }}
               >
                 <option value="VACCINE">Vacina</option>
                 <option value="MEDICATION">Medicamento</option>
@@ -93,11 +128,17 @@ export function HealthFormModal({ isOpen, onClose, onSave }: HealthFormModalProp
               <Label>Produto / Nome *</Label>
               <Input
                 type="text"
+                list={datalistId}
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
-                placeholder={type === "VACCINE" ? "Ex: Febre Aftosa" : "Ex: Ivermectina"}
+                placeholder={type === "VACCINE" ? "Selecione ou digite..." : "Selecione ou digite..."}
                 autoFocus
               />
+              <datalist id={datalistId}>
+                {catalog.map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
             </div>
 
             <div className="grid grid-cols-2 gap-3">

@@ -5,81 +5,171 @@ export function useDashboardController() {
   const bovines = useLiveQuery(() =>
     db.bovines.filter((b) => b.active !== false).toArray(),
   );
+  const allBovines = useLiveQuery(() => db.bovines.toArray());
   const herds = useLiveQuery(() =>
     db.herds.filter((h) => h.active !== false).toArray(),
   );
-
-  const totalBovines = bovines?.length || 0;
-  const totalHerds = herds?.length || 0;
+  const birthRecords = useLiveQuery(() =>
+    db.birthRecords.filter((r) => r.active !== false).toArray(),
+  );
+  const weightRecords = useLiveQuery(() =>
+    db.weightRecords.filter((r) => r.active !== false).toArray(),
+  );
+  const healthRecords = useLiveQuery(() =>
+    db.healthRecords.filter((r) => r.active !== false).toArray(),
+  );
 
   const now = new Date();
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(now.getDate() - 30);
 
+  const activeBovines = bovines || [];
+  const totalBovines = activeBovines.length;
+  const totalHerds = herds?.length || 0;
+  const totalFemales = activeBovines.filter((b) => b.gender === "FEMEA").length;
+
+  // ===== GROWTH RATE (existing) =====
   const newBovinesCount =
-    bovines?.filter((b) => {
+    activeBovines.filter((b) => {
       const date = new Date(b.updatedAt);
       return b.active && date >= thirtyDaysAgo;
-    }).length || 0;
+    }).length;
 
-  const totalActive = bovines?.filter((b) => b.active).length || 0;
-  const previousTotal = totalActive - newBovinesCount;
-
+  const previousTotal = totalBovines - newBovinesCount;
   const growthRate =
     previousTotal > 0
       ? ((newBovinesCount / previousTotal) * 100).toFixed(1)
       : "0";
 
-  // Por Gênero
+  // ===== BIRTH RATE =====
+  const birthsLast12Months = (birthRecords || []).filter((r) => {
+    const date = new Date(r.birthDate);
+    const diff = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24 * 365);
+    return diff <= 1;
+  });
+  const birthRate =
+    totalFemales > 0
+      ? ((birthsLast12Months.length / totalFemales) * 100).toFixed(1)
+      : "0";
+
+  // ===== MORTALITY RATE =====
+  const deadBovines = (allBovines || []).filter((b) => b.status === "MORTO");
+  const totalEver = (allBovines || []).length;
+  const mortalityRate =
+    totalEver > 0
+      ? ((deadBovines.length / totalEver) * 100).toFixed(1)
+      : "0";
+
+  // ===== AVERAGE WEIGHT GAIN =====
+  const avgWeightGain = (() => {
+    const records = weightRecords || [];
+    if (records.length < 2) return null;
+
+    const gains: number[] = [];
+    const bovineIds = new Set(records.map((r) => r.bovineId));
+
+    for (const bovineId of bovineIds) {
+      const bovineRecords = records
+        .filter((r) => r.bovineId === bovineId)
+        .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+      if (bovineRecords.length >= 2) {
+        const first = bovineRecords[0];
+        const last = bovineRecords[bovineRecords.length - 1];
+        gains.push(last.weight - first.weight);
+      }
+    }
+
+    if (gains.length === 0) return null;
+    return (gains.reduce((s, g) => s + g, 0) / gains.length).toFixed(1);
+  })();
+
+  // ===== VACCINATION COVERAGE =====
+  const vaccineRecords = (healthRecords || []).filter((r) => r.type === "VACCINE");
+  const bovinesWithVaccine = new Set(vaccineRecords.map((r) => r.bovineId));
+  const vaccinationCoverage =
+    totalBovines > 0
+      ? ((bovinesWithVaccine.size / totalBovines) * 100).toFixed(1)
+      : "0";
+
+  // ===== OVERDUE VACCINES =====
+  const overdueVaccinesCount = vaccineRecords.filter(
+    (r) => r.nextDueDate && new Date(r.nextDueDate) < now,
+  ).length;
+
+  // ===== BY GENDER =====
   const byGender = [
     {
       name: "Machos",
-      value: bovines?.filter((b) => b.gender === "MACHO").length || 0,
-      fill: "#2563eb", // blue-600
+      value: activeBovines.filter((b) => b.gender === "MACHO").length,
+      fill: "#2563eb",
     },
     {
       name: "Fêmeas",
-      value: bovines?.filter((b) => b.gender === "FEMEA").length || 0,
-      fill: "#db2777", // pink-600
+      value: totalFemales,
+      fill: "#db2777",
     },
   ];
 
-  // Por Status
+  // ===== BY STATUS =====
   const byStatus = [
     {
       name: "Vivos",
-      value: bovines?.filter((b) => b.status === "VIVO").length || 0,
+      value: activeBovines.filter((b) => b.status === "VIVO").length,
       fill: "rgb(var(--color-secondary-500))",
     },
     {
       name: "Vendidos",
-      value: bovines?.filter((b) => b.status === "VENDIDO").length || 0,
-      fill: "rgb(var(--color-neutral-500))",
+      value: (allBovines || []).filter((b) => b.status === "VENDIDO").length,
+      fill: "#eab308",
     },
     {
       name: "Mortos",
-      value: bovines?.filter((b) => b.status === "MORTO").length || 0,
+      value: deadBovines.length,
       fill: "rgb(var(--color-danger-500))",
     },
   ];
 
-  // Por Rebanho (Top 5)
-  const byHerd =
-    herds
-      ?.map((h) => ({
+  // ===== HERD DISTRIBUTION =====
+  const herdDistribution =
+    (herds || [])
+      .map((h) => ({
         name: h.name,
-        value: bovines?.filter((b) => b.herdId === h.id).length || 0,
+        value: activeBovines.filter((b) => b.herdId === h.id).length,
       }))
       .sort((a, b) => b.value - a.value)
-      .slice(0, 5) || [];
+      .slice(0, 8) || [];
+
+  // ===== BIRTHS BY MONTH (last 12 months) =====
+  const birthsByMonth = (() => {
+    const months: { month: string; count: number }[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" });
+      const count = (birthRecords || []).filter((r) => {
+        const bd = new Date(r.birthDate);
+        return bd.getMonth() === d.getMonth() && bd.getFullYear() === d.getFullYear();
+      }).length;
+      months.push({ month: key, count });
+    }
+    return months;
+  })();
 
   return {
     totalBovines,
     totalHerds,
     byGender,
     byStatus,
-    byHerd,
+    herdDistribution,
     growthRate,
     newBovinesCount,
+    birthRate,
+    birthsLast12Months: birthsLast12Months.length,
+    totalFemales,
+    mortalityRate,
+    deadCount: deadBovines.length,
+    avgWeightGain,
+    vaccinationCoverage,
+    overdueVaccinesCount,
+    birthsByMonth,
   };
 }

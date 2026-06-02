@@ -1,49 +1,65 @@
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-} from "recharts";
-import {
-  Baby,
-  Skull,
-  TrendingUp,
-  Syringe,
-  AlertTriangle,
-  BarChart3,
-} from "lucide-react";
+import { useState } from "react";
+import { FileText, Download, FileSpreadsheet, Filter } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { SyncIndicator } from "../components/features/shared/SyncIndicator";
-import { useReportsController } from "../hooks/controllers/useReportsController";
+import { Select } from "../components/ui/Select";
+import { Input } from "../components/ui/Input";
+import { Label } from "../components/ui/Label";
+import {
+  useReportsController,
+  type ReportFilters,
+  type ReportType,
+} from "../hooks/controllers/useReportsController";
+import { exportToCsv, exportToPdf } from "../lib/exportUtils";
+
+const REPORT_TYPES: { value: ReportType; label: string }[] = [
+  { value: "inventory", label: "Inventário Geral" },
+  { value: "weight_history", label: "Histórico de Peso" },
+  { value: "births", label: "Nascimentos" },
+  { value: "health", label: "Saúde / Vacinação" },
+  { value: "mortality", label: "Mortalidade" },
+];
 
 export function Reports() {
-  const {
-    totalActive,
-    totalFemales,
-    birthRate,
-    birthsLast12Months,
-    mortalityRate,
-    deadCount,
-    avgWeightGain,
-    vaccinationCoverage,
-    overdueVaccinesCount,
-    birthsByMonth,
-    byStatus,
-    herdDistribution,
-  } = useReportsController();
+  const [filters, setFilters] = useState<ReportFilters>({
+    type: "inventory",
+    dateFrom: "",
+    dateTo: "",
+    herdId: "",
+  });
 
-  const tooltipStyle = {
-    backgroundColor: "#1f2937",
-    border: "1px solid #374151",
-    borderRadius: "12px",
-    color: "#f3f4f6",
-    fontSize: "12px",
+  const { data, columns, herds, totalRows } = useReportsController(filters);
+
+  const reportLabel =
+    REPORT_TYPES.find((r) => r.value === filters.type)?.label || "Relatório";
+
+  const herdLabel = filters.herdId
+    ? herds.find((h) => h.id === Number(filters.herdId))?.name || ""
+    : "Todos os rebanhos";
+
+  const filterDescription = [
+    herdLabel,
+    filters.dateFrom ? `De: ${new Date(filters.dateFrom).toLocaleDateString("pt-BR")}` : null,
+    filters.dateTo ? `Até: ${new Date(filters.dateTo).toLocaleDateString("pt-BR")}` : null,
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
+  const handleExportCsv = () => {
+    exportToCsv(data, columns, `gadoapp_${filters.type}_${Date.now()}`);
   };
+
+  const handleExportPdf = () => {
+    exportToPdf(
+      data,
+      columns,
+      reportLabel,
+      `gadoapp_${filters.type}_${Date.now()}`,
+      filterDescription,
+    );
+  };
+
+  const needsDateFilter = filters.type !== "inventory" && filters.type !== "mortality";
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
@@ -57,204 +73,162 @@ export function Reports() {
       </div>
 
       <main className="max-w-5xl mx-auto p-4 space-y-6">
-        {/* KPI CARDS */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* Birth rate */}
-          <div className="bg-white dark:bg-neutral-800 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-pink-50 dark:bg-pink-900/20 text-pink-600 rounded-lg">
-                <Baby size={18} />
-              </div>
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Taxa de Natalidade
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {birthRate}%
-            </div>
-            <div className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-              {birthsLast12Months} nascimentos / {totalFemales} fêmeas (12m)
-            </div>
+        {/* FILTER BAR */}
+        <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter size={18} className="text-primary-600" />
+            <h3 className="text-lg font-bold text-neutral-800 dark:text-white">
+              Gerar Relatório
+            </h3>
           </div>
 
-          {/* Mortality rate */}
-          <div className="bg-white dark:bg-neutral-800 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-danger-50 dark:bg-danger-900/20 text-danger-600 rounded-lg">
-                <Skull size={18} />
-              </div>
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Taxa de Mortalidade
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {mortalityRate}%
-            </div>
-            <div className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-              {deadCount} mortes no total
-            </div>
-          </div>
-
-          {/* Average weight gain */}
-          <div className="bg-white dark:bg-neutral-800 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 rounded-lg">
-                <TrendingUp size={18} />
-              </div>
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Ganho Médio de Peso
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {avgWeightGain ? `${avgWeightGain} kg` : "—"}
-            </div>
-            <div className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-              Média entre primeira e última pesagem
-            </div>
-          </div>
-
-          {/* Vaccination coverage */}
-          <div className="bg-white dark:bg-neutral-800 p-5 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-2 bg-teal-50 dark:bg-teal-900/20 text-teal-600 rounded-lg">
-                <Syringe size={18} />
-              </div>
-              <span className="text-xs font-medium text-neutral-500 dark:text-neutral-400">
-                Cobertura Vacinal
-              </span>
-            </div>
-            <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {vaccinationCoverage}%
-            </div>
-            <div className="text-[10px] text-neutral-400 dark:text-neutral-500 mt-0.5">
-              Bovinos com ao menos 1 vacina
-            </div>
-          </div>
-        </div>
-
-        {/* Overdue vaccines warning */}
-        {overdueVaccinesCount > 0 && (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-4 flex items-center gap-3">
-            <AlertTriangle className="text-amber-600 dark:text-amber-400 shrink-0" size={20} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <div className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                {overdueVaccinesCount} vacinas atrasadas
-              </div>
-              <div className="text-xs text-amber-600 dark:text-amber-400">
-                Verifique os registros de saúde dos seus bovinos
-              </div>
+              <Label>Tipo de Relatório</Label>
+              <Select
+                value={filters.type}
+                onChange={(e) =>
+                  setFilters({ ...filters, type: e.target.value as ReportType })
+                }
+              >
+                {REPORT_TYPES.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </Select>
             </div>
-          </div>
-        )}
 
-        {/* CHARTS */}
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Births by month */}
-          <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <div className="flex items-center gap-2 mb-6">
-              <BarChart3 size={18} className="text-pink-600" />
-              <h3 className="text-lg font-bold text-neutral-800 dark:text-white">
-                Nascimentos por Mês
-              </h3>
+            <div>
+              <Label>Rebanho</Label>
+              <Select
+                value={filters.herdId}
+                onChange={(e) =>
+                  setFilters({ ...filters, herdId: e.target.value })
+                }
+              >
+                <option value="">Todos</option>
+                {herds.map((h) => (
+                  <option key={h.id} value={h.id}>
+                    {h.name}
+                  </option>
+                ))}
+              </Select>
             </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={birthsByMonth}>
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fill: "#888", fontSize: 10 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fill: "#888", fontSize: 11 }}
-                    axisLine={false}
-                    tickLine={false}
-                    allowDecimals={false}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar
-                    dataKey="count"
-                    name="Nascimentos"
-                    fill="#ec4899"
-                    radius={[4, 4, 0, 0]}
-                    barSize={20}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
 
-          {/* Status distribution */}
-          <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <h3 className="text-lg font-bold text-neutral-800 dark:text-white mb-6">
-              Distribuição por Status
-            </h3>
-            <div className="h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={byStatus}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={75}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {byStatus.map((entry, i) => (
-                      <Cell key={`cell-${i}`} fill={entry.fill} strokeWidth={0} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="flex justify-center gap-4 mt-2">
-              {byStatus.map((item) => (
-                <div key={item.name} className="flex items-center gap-1.5">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full"
-                    style={{ backgroundColor: item.fill }}
+            {needsDateFilter && (
+              <>
+                <div>
+                  <Label>Data Início</Label>
+                  <Input
+                    type="date"
+                    value={filters.dateFrom}
+                    onChange={(e) =>
+                      setFilters({ ...filters, dateFrom: e.target.value })
+                    }
                   />
-                  <span className="text-xs text-neutral-600 dark:text-neutral-300">
-                    {item.name} ({item.value})
-                  </span>
                 </div>
-              ))}
-            </div>
+                <div>
+                  <Label>Data Fim</Label>
+                  <Input
+                    type="date"
+                    value={filters.dateTo}
+                    onChange={(e) =>
+                      setFilters({ ...filters, dateTo: e.target.value })
+                    }
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
 
-        {/* Herd distribution */}
-        {herdDistribution.length > 0 && (
-          <div className="bg-white dark:bg-neutral-800 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-            <h3 className="text-lg font-bold text-neutral-800 dark:text-white mb-6">
-              Distribuição por Rebanho
-            </h3>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={herdDistribution} layout="vertical" margin={{ left: 20 }}>
-                  <XAxis type="number" hide />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={100}
-                    tick={{ fill: "#888", fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "transparent" }} />
-                  <Bar
-                    dataKey="value"
-                    name="Bovinos"
-                    fill="rgb(var(--color-primary-500))"
-                    radius={[0, 4, 4, 0]}
-                    barSize={20}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+        {/* RESULTS HEADER + EXPORT */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-800 dark:text-white">
+              {reportLabel}
+            </h2>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {totalRows} registro{totalRows !== 1 ? "s" : ""} encontrado{totalRows !== 1 ? "s" : ""}
+              {filterDescription ? ` • ${filterDescription}` : ""}
+            </p>
+          </div>
+
+          {totalRows > 0 && (
+            <div className="flex gap-3">
+              <button
+                onClick={handleExportCsv}
+                className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-medium shadow-lg shadow-green-200 dark:shadow-none transition-colors active:scale-[0.98]"
+              >
+                <FileSpreadsheet size={16} />
+                Exportar CSV
+              </button>
+              <button
+                onClick={handleExportPdf}
+                className="flex items-center gap-2 px-4 py-2.5 bg-danger-600 hover:bg-danger-700 text-white rounded-xl text-sm font-medium shadow-lg shadow-danger-200 dark:shadow-none transition-colors active:scale-[0.98]"
+              >
+                <Download size={16} />
+                Exportar PDF
+              </button>
             </div>
+          )}
+        </div>
+
+        {/* DATA TABLE */}
+        {totalRows > 0 ? (
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-neutral-50 dark:bg-neutral-900/50 border-b border-neutral-100 dark:border-neutral-700">
+                    {columns.map((col) => (
+                      <th
+                        key={col.key}
+                        className="text-left px-4 py-3 font-semibold text-neutral-600 dark:text-neutral-300 whitespace-nowrap"
+                      >
+                        {col.header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.slice(0, 100).map((row, i) => (
+                    <tr
+                      key={i}
+                      className="border-b border-neutral-50 dark:border-neutral-700/50 hover:bg-neutral-50 dark:hover:bg-neutral-700/30 transition-colors"
+                    >
+                      {columns.map((col) => (
+                        <td
+                          key={col.key}
+                          className="px-4 py-3 text-neutral-700 dark:text-neutral-300 whitespace-nowrap"
+                        >
+                          {row[col.key]}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {data.length > 100 && (
+              <div className="px-4 py-3 text-center text-sm text-neutral-500 dark:text-neutral-400 border-t border-neutral-100 dark:border-neutral-700">
+                Mostrando 100 de {data.length} registros. Exporte para ver todos.
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm p-12 text-center">
+            <FileText
+              size={48}
+              className="mx-auto mb-4 text-neutral-300 dark:text-neutral-600"
+            />
+            <h3 className="text-lg font-semibold text-neutral-600 dark:text-neutral-400">
+              Nenhum registro encontrado
+            </h3>
+            <p className="text-sm text-neutral-400 dark:text-neutral-500 mt-1">
+              Ajuste os filtros ou selecione outro tipo de relatório
+            </p>
           </div>
         )}
       </main>

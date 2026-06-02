@@ -332,6 +332,21 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 if (b) localBovineId = b.id;
               }
 
+              // Fallback: match by bovineId + weight + recordedAt when no serverId
+              const existingByFields = !existing && localBovineId
+                ? await db.weightRecords
+                    .filter((r) => {
+                      if (r.serverId || r.bovineId !== localBovineId) return false;
+                      if (r.weight !== swr.weight) return false;
+                      const localTs = new Date(r.recordedAt).getTime();
+                      const serverTs = new Date(swr.recordedAt).getTime();
+                      return Math.abs(localTs - serverTs) < 86400000; // within 24h
+                    })
+                    .first()
+                : null;
+
+              const target = existing || existingByFields;
+
               const payload = {
                 serverId: swr.id,
                 bovineId: localBovineId || 0,
@@ -344,8 +359,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 updatedAt: swr.updatedAt,
               };
 
-              if (existing) {
-                await db.weightRecords.update(existing.id!, payload);
+              if (target) {
+                await db.weightRecords.update(target.id!, payload);
               } else if (swr.active) {
                 await db.weightRecords.add(payload);
               }
@@ -418,6 +433,20 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 if (c) localCalfId = c.id;
               }
 
+              // Fallback: match by motherId + birthDate when no serverId
+              const existingByFields = !existing && localMotherId
+                ? await db.birthRecords
+                    .filter((r) => {
+                      if (r.serverId || r.motherId !== localMotherId) return false;
+                      const localTs = new Date(r.birthDate).getTime();
+                      const serverTs = new Date(sbr.birthDate).getTime();
+                      return Math.abs(localTs - serverTs) < 86400000; // within 24h
+                    })
+                    .first()
+                : null;
+
+              const target = existing || existingByFields;
+
               const payload = {
                 serverId: sbr.id,
                 motherId: localMotherId || 0,
@@ -431,8 +460,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 updatedAt: sbr.updatedAt,
               };
 
-              if (existing) {
-                await db.birthRecords.update(existing.id!, payload);
+              if (target) {
+                await db.birthRecords.update(target.id!, payload);
               } else if (sbr.active) {
                 await db.birthRecords.add(payload);
               }
@@ -503,6 +532,21 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 if (b) localBovineId = b.id;
               }
 
+              // Fallback: match by bovineId + productName + appliedAt when no serverId
+              const existingByFields = !existing && localBovineId
+                ? await db.healthRecords
+                    .filter((r) => {
+                      if (r.serverId || r.bovineId !== localBovineId) return false;
+                      if (r.productName !== shr.productName) return false;
+                      const localTs = new Date(r.appliedAt).getTime();
+                      const serverTs = new Date(shr.appliedAt).getTime();
+                      return Math.abs(localTs - serverTs) < 86400000; // within 24h
+                    })
+                    .first()
+                : null;
+
+              const target = existing || existingByFields;
+
               const payload = {
                 serverId: shr.id,
                 bovineId: localBovineId || 0,
@@ -519,8 +563,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 updatedAt: shr.updatedAt,
               };
 
-              if (existing) {
-                await db.healthRecords.update(existing.id!, payload);
+              if (target) {
+                await db.healthRecords.update(target.id!, payload);
               } else if (shr.active) {
                 await db.healthRecords.add(payload);
               }

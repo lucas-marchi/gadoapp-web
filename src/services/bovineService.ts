@@ -1,4 +1,5 @@
 import { db } from "../db/db";
+import type { WeightRecord, BirthRecord } from "../db/db";
 
 export interface BovineDTO {
   name: string;
@@ -58,7 +59,43 @@ export const bovineService = {
     if (id) {
       return db.bovines.update(id, payload);
     }
-    return db.bovines.add({ ...payload, syncStatus: "created" });
+
+    // New bovine: create and get the local ID back
+    const newBovineId = await db.bovines.add({ ...payload, syncStatus: "created" });
+
+    // Auto-create WeightRecord if initial weight is provided
+    if (dto.weight && dto.weight > 0) {
+      const wrPayload: Omit<WeightRecord, "id"> = {
+        bovineId: newBovineId as number,
+        serverBovineId: undefined,
+        weight: dto.weight,
+        recordedAt: dto.birth || new Date().toISOString(),
+        notes: "Peso inicial no cadastro",
+        active: true,
+        syncStatus: "created",
+        updatedAt: new Date().toISOString(),
+      };
+      await db.weightRecords.add(wrPayload);
+    }
+
+    // Auto-create BirthRecord for the mother if momId is provided
+    if (dto.momId) {
+      const mother = await db.bovines.get(dto.momId);
+      const brPayload: Omit<BirthRecord, "id"> = {
+        motherId: dto.momId,
+        serverMotherId: mother?.serverId,
+        calfId: newBovineId as number,
+        serverCalfId: undefined,
+        birthDate: dto.birth || new Date().toISOString(),
+        notes: undefined,
+        active: true,
+        syncStatus: "created",
+        updatedAt: new Date().toISOString(),
+      };
+      await db.birthRecords.add(brPayload);
+    }
+
+    return newBovineId;
   },
 
   delete: async (id: number) => {
