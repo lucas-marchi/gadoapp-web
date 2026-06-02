@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { useSync } from '../../contexts/SyncContext';
 import { herdService } from '../../services/herdService';
+import { bovineService } from '../../services/bovineService';
 
 export function useHerdsController() {
   const { syncNow } = useSync();
@@ -10,9 +11,11 @@ export function useHerdsController() {
   
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [herdToDelete, setHerdToDelete] = useState<{ id: number; name: string } | null>(null);
+  const [deleteCattle, setDeleteCattle] = useState(false);
 
   function requestDelete(id: number, name: string) {
     setHerdToDelete({ id, name });
+    setDeleteCattle(false);
     setDeleteModalOpen(true);
   }
 
@@ -20,6 +23,9 @@ export function useHerdsController() {
     if (herdToDelete) {
       toast.promise(
         async () => {
+          if (deleteCattle) {
+            await bovineService.deleteByHerdId(herdToDelete.id);
+          }
           await herdService.delete(herdToDelete.id);
           syncNow();
           setDeleteModalOpen(false);
@@ -34,6 +40,8 @@ export function useHerdsController() {
     deleteModalOpen,
     setDeleteModalOpen,
     herdToDelete,
+    deleteCattle,
+    setDeleteCattle,
     requestDelete,
     confirmDelete,
   };

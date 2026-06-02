@@ -11,6 +11,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   isDangerous?: boolean;
   confirmKeyword?: string;
+  children?: React.ReactNode;
 }
 
 export function ConfirmModal({
@@ -23,6 +24,7 @@ export function ConfirmModal({
   cancelText = 'Cancelar',
   isDangerous = false,
   confirmKeyword,
+  children,
 }: ConfirmModalProps) {
   const [inputValue, setInputValue] = useState('');
   
@@ -74,6 +76,12 @@ export function ConfirmModal({
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={confirmKeyword}
             />
+          </div>
+        )}
+
+        {children && (
+          <div className="mt-4">
+            {children}
           </div>
         )}
 

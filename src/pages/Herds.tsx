@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { MobileHeader } from "../components/layout/MobileHeader";
 import { DataCard } from "../components/ui/DataCard";
 import { ConfirmModal } from "../components/ui/ConfirmModal";
+import { Checkbox } from "../components/ui/Checkbox";
 import { useNavigate } from "react-router-dom";
 
 export function Herds() {
@@ -18,6 +19,8 @@ export function Herds() {
     requestDelete,
     confirmDelete,
     herdToDelete,
+    deleteCattle,
+    setDeleteCattle,
   } = useHerdsController();
 
   return (
@@ -85,7 +88,17 @@ export function Herds() {
         confirmText="Excluir Rebanho"
         isDangerous
         confirmKeyword={herdToDelete?.name}
-      />
+      >
+        <Checkbox
+          id="delete-cattle-checkbox"
+          checked={deleteCattle}
+          onChange={(e) => setDeleteCattle(e.target.checked)}
+          variant="danger"
+          label="Excluir todos os animais deste rebanho"
+          description="Os animais serão permanentemente removidos. Caso contrário, ficarão sem rebanho."
+        />
+      </ConfirmModal>
     </div>
   );
 }
+

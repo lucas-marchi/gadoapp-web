@@ -104,6 +104,24 @@ export const bovineService = {
     });
   },
 
+  deleteByHerdId: async (herdId: number) => {
+    const bovines = await db.bovines
+      .filter((b) => b.herdId === herdId && b.active !== false)
+      .toArray();
+
+    return db.transaction("rw", db.bovines, async () => {
+      for (const bovine of bovines) {
+        if (bovine.id) {
+          await db.bovines.update(bovine.id, {
+            active: false,
+            syncStatus: "deleted",
+            updatedAt: new Date().toISOString(),
+          });
+        }
+      }
+    });
+  },
+
   batchUpdateStatus: async (ids: number[], status: string) => {
     return db.transaction("rw", db.bovines, async () => {
       for (const id of ids) {
