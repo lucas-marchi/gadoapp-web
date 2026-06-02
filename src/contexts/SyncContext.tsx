@@ -270,6 +270,264 @@ export function SyncProvider({ children }: { children: ReactNode }) {
           });
           localStorage.setItem("last_sync_bovines", new Date().toISOString());
         }
+
+        // =================================================
+        // 3. REGISTROS DE PESO (WEIGHT RECORDS)
+        // =================================================
+
+        // 3.1 Resolve server IDs for bovines
+        const allBovinesForWR = await db.bovines.toArray();
+
+        // 3.2 PUSH WEIGHT RECORDS
+        const unsyncedWeightRecords = await db.weightRecords
+          .where("syncStatus")
+          .anyOf("created", "updated", "deleted")
+          .toArray();
+
+        if (unsyncedWeightRecords.length > 0) {
+          const wrDtos = unsyncedWeightRecords.map((wr) => {
+            const bovine = allBovinesForWR.find((b) => b.id === wr.bovineId);
+            return {
+              id: wr.serverId,
+              bovineId: bovine?.serverId || null,
+              weight: wr.weight,
+              recordedAt: wr.recordedAt,
+              notes: wr.notes,
+              active: wr.active,
+              tempId: wr.id,
+            };
+          });
+
+          await api.post("/sync/weight-records/push", { data: wrDtos });
+
+          await db.transaction("rw", db.weightRecords, async () => {
+            for (const wr of unsyncedWeightRecords) {
+              if (wr.syncStatus === "deleted") {
+                if (wr.id) await db.weightRecords.delete(wr.id);
+              } else {
+                if (wr.id) await db.weightRecords.update(wr.id, { syncStatus: "synced" });
+              }
+            }
+          });
+        }
+
+        // 3.3 PULL WEIGHT RECORDS
+        const countLocalWR = await db.weightRecords.count();
+        let lastSyncWR = localStorage.getItem("last_sync_weight_records");
+        if (countLocalWR === 0 || unsyncedWeightRecords.length > 0) lastSyncWR = null;
+
+        const paramsWR = lastSyncWR ? { since: lastSyncWR } : {};
+        const resWR = await api.get("/sync/weight-records/pull", { params: paramsWR });
+        const serverWRs = resWR.data;
+
+        if (serverWRs.length > 0) {
+          await db.transaction("rw", db.weightRecords, db.bovines, async () => {
+            for (const swr of serverWRs) {
+              const existing = await db.weightRecords
+                .where("serverId").equals(swr.id).first();
+
+              let localBovineId: number | undefined;
+              if (swr.bovineId) {
+                const b = await db.bovines.where("serverId").equals(swr.bovineId).first();
+                if (b) localBovineId = b.id;
+              }
+
+              const payload = {
+                serverId: swr.id,
+                bovineId: localBovineId || 0,
+                serverBovineId: swr.bovineId,
+                weight: swr.weight,
+                recordedAt: swr.recordedAt,
+                notes: swr.notes,
+                active: swr.active,
+                syncStatus: "synced" as const,
+                updatedAt: swr.updatedAt,
+              };
+
+              if (existing) {
+                await db.weightRecords.update(existing.id!, payload);
+              } else if (swr.active) {
+                await db.weightRecords.add(payload);
+              }
+            }
+          });
+          localStorage.setItem("last_sync_weight_records", new Date().toISOString());
+        }
+
+        // =================================================
+        // 4. REGISTROS DE NASCIMENTO (BIRTH RECORDS)
+        // =================================================
+
+        // 4.1 PUSH BIRTH RECORDS
+        const unsyncedBirthRecords = await db.birthRecords
+          .where("syncStatus")
+          .anyOf("created", "updated", "deleted")
+          .toArray();
+
+        if (unsyncedBirthRecords.length > 0) {
+          const brDtos = unsyncedBirthRecords.map((br) => {
+            const mother = allBovinesForWR.find((b) => b.id === br.motherId);
+            const calf = br.calfId ? allBovinesForWR.find((b) => b.id === br.calfId) : null;
+            return {
+              id: br.serverId,
+              motherId: mother?.serverId || null,
+              calfId: calf?.serverId || null,
+              birthDate: br.birthDate,
+              notes: br.notes,
+              active: br.active,
+              tempId: br.id,
+            };
+          });
+
+          await api.post("/sync/birth-records/push", { data: brDtos });
+
+          await db.transaction("rw", db.birthRecords, async () => {
+            for (const br of unsyncedBirthRecords) {
+              if (br.syncStatus === "deleted") {
+                if (br.id) await db.birthRecords.delete(br.id);
+              } else {
+                if (br.id) await db.birthRecords.update(br.id, { syncStatus: "synced" });
+              }
+            }
+          });
+        }
+
+        // 4.2 PULL BIRTH RECORDS
+        const countLocalBR = await db.birthRecords.count();
+        let lastSyncBR = localStorage.getItem("last_sync_birth_records");
+        if (countLocalBR === 0 || unsyncedBirthRecords.length > 0) lastSyncBR = null;
+
+        const paramsBR = lastSyncBR ? { since: lastSyncBR } : {};
+        const resBR = await api.get("/sync/birth-records/pull", { params: paramsBR });
+        const serverBRs = resBR.data;
+
+        if (serverBRs.length > 0) {
+          await db.transaction("rw", db.birthRecords, db.bovines, async () => {
+            for (const sbr of serverBRs) {
+              const existing = await db.birthRecords
+                .where("serverId").equals(sbr.id).first();
+
+              let localMotherId: number | undefined;
+              if (sbr.motherId) {
+                const m = await db.bovines.where("serverId").equals(sbr.motherId).first();
+                if (m) localMotherId = m.id;
+              }
+              let localCalfId: number | undefined;
+              if (sbr.calfId) {
+                const c = await db.bovines.where("serverId").equals(sbr.calfId).first();
+                if (c) localCalfId = c.id;
+              }
+
+              const payload = {
+                serverId: sbr.id,
+                motherId: localMotherId || 0,
+                serverMotherId: sbr.motherId,
+                calfId: localCalfId,
+                serverCalfId: sbr.calfId,
+                birthDate: sbr.birthDate,
+                notes: sbr.notes,
+                active: sbr.active,
+                syncStatus: "synced" as const,
+                updatedAt: sbr.updatedAt,
+              };
+
+              if (existing) {
+                await db.birthRecords.update(existing.id!, payload);
+              } else if (sbr.active) {
+                await db.birthRecords.add(payload);
+              }
+            }
+          });
+          localStorage.setItem("last_sync_birth_records", new Date().toISOString());
+        }
+
+        // =================================================
+        // 5. REGISTROS DE SAÚDE (HEALTH RECORDS)
+        // =================================================
+
+        // 5.1 PUSH HEALTH RECORDS
+        const unsyncedHealthRecords = await db.healthRecords
+          .where("syncStatus")
+          .anyOf("created", "updated", "deleted")
+          .toArray();
+
+        if (unsyncedHealthRecords.length > 0) {
+          const hrDtos = unsyncedHealthRecords.map((hr) => {
+            const bovine = allBovinesForWR.find((b) => b.id === hr.bovineId);
+            return {
+              id: hr.serverId,
+              bovineId: bovine?.serverId || null,
+              type: hr.type,
+              productName: hr.productName,
+              appliedAt: hr.appliedAt,
+              dosage: hr.dosage,
+              veterinarian: hr.veterinarian,
+              nextDueDate: hr.nextDueDate,
+              notes: hr.notes,
+              active: hr.active,
+              tempId: hr.id,
+            };
+          });
+
+          await api.post("/sync/health-records/push", { data: hrDtos });
+
+          await db.transaction("rw", db.healthRecords, async () => {
+            for (const hr of unsyncedHealthRecords) {
+              if (hr.syncStatus === "deleted") {
+                if (hr.id) await db.healthRecords.delete(hr.id);
+              } else {
+                if (hr.id) await db.healthRecords.update(hr.id, { syncStatus: "synced" });
+              }
+            }
+          });
+        }
+
+        // 5.2 PULL HEALTH RECORDS
+        const countLocalHR = await db.healthRecords.count();
+        let lastSyncHR = localStorage.getItem("last_sync_health_records");
+        if (countLocalHR === 0 || unsyncedHealthRecords.length > 0) lastSyncHR = null;
+
+        const paramsHR = lastSyncHR ? { since: lastSyncHR } : {};
+        const resHR = await api.get("/sync/health-records/pull", { params: paramsHR });
+        const serverHRs = resHR.data;
+
+        if (serverHRs.length > 0) {
+          await db.transaction("rw", db.healthRecords, db.bovines, async () => {
+            for (const shr of serverHRs) {
+              const existing = await db.healthRecords
+                .where("serverId").equals(shr.id).first();
+
+              let localBovineId: number | undefined;
+              if (shr.bovineId) {
+                const b = await db.bovines.where("serverId").equals(shr.bovineId).first();
+                if (b) localBovineId = b.id;
+              }
+
+              const payload = {
+                serverId: shr.id,
+                bovineId: localBovineId || 0,
+                serverBovineId: shr.bovineId,
+                type: shr.type,
+                productName: shr.productName,
+                appliedAt: shr.appliedAt,
+                dosage: shr.dosage,
+                veterinarian: shr.veterinarian,
+                nextDueDate: shr.nextDueDate,
+                notes: shr.notes,
+                active: shr.active,
+                syncStatus: "synced" as const,
+                updatedAt: shr.updatedAt,
+              };
+
+              if (existing) {
+                await db.healthRecords.update(existing.id!, payload);
+              } else if (shr.active) {
+                await db.healthRecords.add(payload);
+              }
+            }
+          });
+          localStorage.setItem("last_sync_health_records", new Date().toISOString());
+        }
       } catch (error) {
         console.error("Erro no Sync:", error);
       } finally {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Layers, Beef, LogOut, Sun, Moon, Plus, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Layers, Beef, LogOut, Sun, Moon, Plus, ChevronDown, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../hooks/ui/useTheme';
 import { useModals } from '../../contexts/ModalContext';
@@ -19,6 +19,7 @@ export function Sidebar() {
     if (path === '/') return `${base} bg-tertiary-50 text-tertiary-600 dark:bg-tertiary-900/20 dark:text-tertiary-400`;
     if (path === '/herds') return `${base} bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400`;
     if (path === '/bovines') return `${base} bg-secondary-50 text-secondary-600 dark:bg-secondary-900/20 dark:text-secondary-400`;
+    if (path === '/reports') return `${base} bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400`;
     return base; // Fallback
   };
 
@@ -111,6 +112,15 @@ export function Sidebar() {
         >
           <Beef size={22} />
           <span>Bovinos</span>
+        </Link>
+
+        <Link
+          to="/reports"
+          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all group ${isActive('/reports') ? getActiveClass('/reports') : inactiveClass
+            }`}
+        >
+          <BarChart3 size={22} />
+          <span>Relatórios</span>
         </Link>
 
       </nav>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useModals } from "../contexts/ModalContext";
 import { useBovinesController } from "../hooks/controllers/useBovinesController";
 import { MobileHeader } from "../components/layout/MobileHeader";
@@ -11,7 +12,8 @@ import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { MoveBovinesModal } from "../components/features/bovines/MoveBovinesModal";
 
 export function Bovines() {
-  const { openBovineModal, openBovineDetails } = useModals();
+  const { openBovineModal } = useModals();
+  const navigate = useNavigate();
 
   const {
     bovines,
@@ -123,7 +125,7 @@ export function Bovines() {
                   status={bovine.syncStatus}
                   selectable={isSelectionMode}
                   isSelected={selection.selectedIds.includes(bovine.id!)}
-                  onClick={() => openBovineDetails(bovine)}
+                  onClick={() => navigate(`/bovines/${bovine.id}`)}
                   onSelect={() => selection.toggle(bovine.id!)}
                   onLongPress={() => handleLongPress(bovine.id!)}
                   onEdit={() => openBovineModal(bovine.id, bovine)}

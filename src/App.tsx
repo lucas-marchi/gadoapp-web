@@ -3,6 +3,8 @@ import { Toaster } from "sonner";
 import { Login } from "./pages/Login";
 import { Herds } from "./pages/Herds";
 import { Bovines } from "./pages/Bovines";
+import { BovineDetail } from "./pages/BovineDetail";
+import { Reports } from "./pages/Reports";
 import { Dashboard } from "./pages/Dashboard";
 
 import { PrivateRoute } from "./components/auth/PrivateRoute";
@@ -36,6 +38,22 @@ function App() {
           element={
             <PrivateRoute>
               <Bovines />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/bovines/:id"
+          element={
+            <PrivateRoute>
+              <BovineDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/reports"
+          element={
+            <PrivateRoute>
+              <Reports />
             </PrivateRoute>
           }
         />

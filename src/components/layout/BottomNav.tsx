@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Layers, Beef } from 'lucide-react';
+import { LayoutDashboard, Layers, Beef, BarChart3 } from 'lucide-react';
 
 export function BottomNav() {
   const location = useLocation();
@@ -33,6 +33,7 @@ export function BottomNav() {
       <NavItem to="/" icon={LayoutDashboard} label="Início" />
       <NavItem to="/herds" icon={Layers} label="Rebanhos" />
       <NavItem to="/bovines" icon={Beef} label="Bovinos" />
+      <NavItem to="/reports" icon={BarChart3} label="Relatórios" />
 
     </nav>
   );
