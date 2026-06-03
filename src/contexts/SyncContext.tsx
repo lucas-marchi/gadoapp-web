@@ -11,6 +11,7 @@ import { db } from "../db/db";
 import { api } from "../lib/axios";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Check } from "lucide-react";
+import { useFarm } from "./FarmContext";
 
 interface SyncContextType {
   isOnline: boolean;
@@ -25,6 +26,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { activeFarm } = useFarm();
 
   const pendingHerds = useLiveQuery(() =>
     db.herds.where("syncStatus").notEqual("synced").toArray(),
@@ -33,7 +35,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const pendingCount = pendingHerds?.length || 0;
 
   const syncNow = useCallback(async () => {
-    if (!navigator.onLine || isSyncing) return;
+    if (!navigator.onLine || isSyncing || !activeFarm) return;
 
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
 
@@ -57,7 +59,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             active: h.active,
           }));
 
-          await api.post("/sync/herds/push", { data: dtos });
+          await api.post("/sync/herds/push", { data: dtos }, { params: { farmId: activeFarm.id } });
 
           await db.transaction("rw", db.herds, async () => {
             for (const herd of unsyncedHerds) {
@@ -76,7 +78,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         let lastSyncHerds = localStorage.getItem("last_sync_herds");
         if (countLocalHerds === 0) lastSyncHerds = null;
 
-        const paramsHerds = lastSyncHerds ? { since: lastSyncHerds } : {};
+        const paramsHerds = lastSyncHerds ? { since: lastSyncHerds, farmId: activeFarm.id } : { farmId: activeFarm.id };
         const resHerds = await api.get("/sync/herds/pull", {
           params: paramsHerds,
         });
@@ -176,7 +178,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/bovines/push", { data: dtos });
+          await api.post("/sync/bovines/push", { data: dtos }, { params: { farmId: activeFarm.id } });
 
           await db.transaction("rw", db.bovines, async () => {
             for (const b of unsyncedBovines) {
@@ -200,7 +202,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
         const paramsBovines = lastSyncBovines ? { since: lastSyncBovines } : {};
         const resBovines = await api.get("/sync/bovines/pull", {
-          params: paramsBovines,
+          params: { ...paramsBovines, farmId: activeFarm.id },
         });
         const serverBovines = resBovines.data;
 
@@ -298,7 +300,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/weight-records/push", { data: wrDtos });
+          await api.post("/sync/weight-records/push", { data: wrDtos }, { params: { farmId: activeFarm.id } });
 
           await db.transaction("rw", db.weightRecords, async () => {
             for (const wr of unsyncedWeightRecords) {
@@ -317,7 +319,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalWR === 0 || unsyncedWeightRecords.length > 0) lastSyncWR = null;
 
         const paramsWR = lastSyncWR ? { since: lastSyncWR } : {};
-        const resWR = await api.get("/sync/weight-records/pull", { params: paramsWR });
+        const resWR = await api.get("/sync/weight-records/pull", { params: { ...paramsWR, farmId: activeFarm.id } });
         const serverWRs = resWR.data;
 
         if (serverWRs.length > 0) {
@@ -394,7 +396,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/birth-records/push", { data: brDtos });
+          await api.post("/sync/birth-records/push", { data: brDtos }, { params: { farmId: activeFarm.id } });
 
           await db.transaction("rw", db.birthRecords, async () => {
             for (const br of unsyncedBirthRecords) {
@@ -413,7 +415,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalBR === 0 || unsyncedBirthRecords.length > 0) lastSyncBR = null;
 
         const paramsBR = lastSyncBR ? { since: lastSyncBR } : {};
-        const resBR = await api.get("/sync/birth-records/pull", { params: paramsBR });
+        const resBR = await api.get("/sync/birth-records/pull", { params: { ...paramsBR, farmId: activeFarm.id } });
         const serverBRs = resBR.data;
 
         if (serverBRs.length > 0) {
@@ -498,7 +500,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/health-records/push", { data: hrDtos });
+          await api.post("/sync/health-records/push", { data: hrDtos }, { params: { farmId: activeFarm.id } });
 
           await db.transaction("rw", db.healthRecords, async () => {
             for (const hr of unsyncedHealthRecords) {
@@ -517,7 +519,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalHR === 0 || unsyncedHealthRecords.length > 0) lastSyncHR = null;
 
         const paramsHR = lastSyncHR ? { since: lastSyncHR } : {};
-        const resHR = await api.get("/sync/health-records/pull", { params: paramsHR });
+        const resHR = await api.get("/sync/health-records/pull", { params: { ...paramsHR, farmId: activeFarm.id } });
         const serverHRs = resHR.data;
 
         if (serverHRs.length > 0) {

@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
+import { FarmProvider } from "./contexts/FarmContext.tsx";
 import { ThemeProvider } from "./contexts/ThemeContext.tsx";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import "./index.css";
@@ -17,7 +18,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <ThemeProvider defaultTheme="dark" storageKey="gadoapp-theme">
           <AuthProvider>
-            <App />
+            <FarmProvider>
+              <App />
+            </FarmProvider>
           </AuthProvider>
         </ThemeProvider>
       </BrowserRouter>

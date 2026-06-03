@@ -6,6 +6,7 @@ import { Bovines } from "./pages/Bovines";
 import { BovineDetail } from "./pages/BovineDetail";
 import { Reports } from "./pages/Reports";
 import { Dashboard } from "./pages/Dashboard";
+import { Profile } from "./pages/Profile";
 
 import { PrivateRoute } from "./components/auth/PrivateRoute";
 
@@ -54,6 +55,14 @@ function App() {
           element={
             <PrivateRoute>
               <Reports />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <PrivateRoute>
+              <Profile />
             </PrivateRoute>
           }
         />

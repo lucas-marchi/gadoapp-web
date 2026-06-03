@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useGoogleLogin } from "@react-oauth/google";
 import FacebookLogin from "@greatsumini/react-facebook-login";
 import { useAuth } from "../contexts/AuthContext";
+import { useFarm } from "../contexts/FarmContext";
 import { useNavigate } from "react-router-dom";
 import { Label } from "../components/ui/Label";
 import { Input } from "../components/ui/Input";
@@ -22,6 +23,7 @@ export function Login() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const { setFarmsFromLogin } = useFarm();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,8 +72,10 @@ export function Login() {
         : { email, password };
 
       const response = await api.post(endpoint, payload);
+      const { token, userName, userEmail, farms } = response.data;
 
-      login(response.data.token);
+      login(token, { name: userName, email: userEmail });
+      if (farms) setFarmsFromLogin(farms);
       toast.success(
         !isLogin ? "Conta criada com sucesso!" : "Bem-vindo de volta!",
       );
@@ -110,7 +114,8 @@ export function Login() {
           provider: "google",
           token: tokenResponse.access_token,
         });
-        login(data.token);
+        login(data.token, { name: data.userName, email: data.userEmail });
+        if (data.farms) setFarmsFromLogin(data.farms);
         toast.success("Login com Google realizado!");
         navigate("/");
       } catch (error) {
@@ -132,7 +137,8 @@ export function Login() {
           provider: "facebook",
           token: response.accessToken,
         });
-        login(data.token);
+        login(data.token, { name: data.userName, email: data.userEmail });
+        if (data.farms) setFarmsFromLogin(data.farms);
         toast.success("Login com Facebook realizado!");
         navigate("/");
       } catch (error) {
