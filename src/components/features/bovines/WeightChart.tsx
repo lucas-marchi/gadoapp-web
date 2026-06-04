@@ -8,12 +8,20 @@ import {
   CartesianGrid,
 } from "recharts";
 import type { WeightRecord } from "../../../db/db";
+import {
+  type WeightUnit,
+  convertWeight,
+  formatWeight,
+  unitLabel,
+} from "../../../lib/weightUtils";
 
 interface WeightChartProps {
   records: WeightRecord[];
+  unit?: WeightUnit;
+  onUnitChange?: (unit: WeightUnit) => void;
 }
 
-export function WeightChart({ records }: WeightChartProps) {
+export function WeightChart({ records, unit = "kg", onUnitChange }: WeightChartProps) {
   if (records.length === 0) {
     return (
       <div className="text-center py-8 text-neutral-400 dark:text-neutral-500 text-sm">
@@ -27,33 +35,70 @@ export function WeightChart({ records }: WeightChartProps) {
       day: "2-digit",
       month: "short",
     }),
-    weight: r.weight,
+    weight: convertWeight(r.weight, unit),
     fullDate: new Date(r.recordedAt).toLocaleDateString("pt-BR"),
   }));
 
-  const minWeight = Math.min(...records.map((r) => r.weight));
-  const maxWeight = Math.max(...records.map((r) => r.weight));
-  const diff = records.length >= 2 ? records[records.length - 1].weight - records[0].weight : 0;
+  const weights = data.map((d) => d.weight);
+  const minWeight = Math.min(...weights);
+  const maxWeight = Math.max(...weights);
+
+  const currentWeight = convertWeight(records[records.length - 1].weight, unit);
+  const diff =
+    records.length >= 2
+      ? convertWeight(records[records.length - 1].weight, unit) -
+        convertWeight(records[0].weight, unit)
+      : 0;
+
+  const uLabel = unitLabel(unit);
 
   return (
     <div>
-      <div className="flex items-center gap-4 mb-4">
-        <div className="text-sm text-neutral-500 dark:text-neutral-400">
-          <span className="font-semibold text-neutral-800 dark:text-white">
-            {records[records.length - 1].weight} kg
-          </span>{" "}
-          atual
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
+            <span className="font-semibold text-neutral-800 dark:text-white">
+              {formatWeight(currentWeight, unit)}
+            </span>{" "}
+            atual
+          </div>
+          {records.length >= 2 && (
+            <div
+              className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                diff >= 0
+                  ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                  : "bg-danger-50 text-danger-600 dark:bg-danger-900/20 dark:text-danger-400"
+              }`}
+            >
+              {diff >= 0 ? "+" : ""}
+              {diff.toFixed(unit === "arroba" ? 2 : 1)} {uLabel}
+            </div>
+          )}
         </div>
-        {records.length >= 2 && (
-          <div
-            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-              diff >= 0
-                ? "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
-                : "bg-danger-50 text-danger-600 dark:bg-danger-900/20 dark:text-danger-400"
-            }`}
-          >
-            {diff >= 0 ? "+" : ""}
-            {diff.toFixed(1)} kg
+
+        {/* Unit toggle */}
+        {onUnitChange && (
+          <div className="flex items-center bg-neutral-100 dark:bg-neutral-700 rounded-lg p-0.5">
+            <button
+              onClick={() => onUnitChange("kg")}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                unit === "kg"
+                  ? "bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm"
+                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+              }`}
+            >
+              Kg
+            </button>
+            <button
+              onClick={() => onUnitChange("arroba")}
+              className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+                unit === "arroba"
+                  ? "bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm"
+                  : "text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200"
+              }`}
+            >
+              @
+            </button>
           </div>
         )}
       </div>
@@ -87,7 +132,7 @@ export function WeightChart({ records }: WeightChartProps) {
                 color: "#f3f4f6",
                 fontSize: "12px",
               }}
-              formatter={(value) => [`${value} kg`, "Peso"]}
+              formatter={(value) => [`${value} ${uLabel}`, "Peso"]}
               labelFormatter={(label) => label}
             />
             <Line

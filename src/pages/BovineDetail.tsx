@@ -13,6 +13,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import {
+  type WeightUnit,
+  formatWeightFromKg,
+  getStoredWeightUnit,
+  setStoredWeightUnit,
+} from "../lib/weightUtils";
+
 import { useBovineDetailController, type DetailTab } from "../hooks/controllers/useBovineDetailController";
 import { useModals } from "../contexts/ModalContext";
 import { useSync } from "../contexts/SyncContext";
@@ -50,6 +57,12 @@ export function BovineDetail() {
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showBirthModal, setShowBirthModal] = useState(false);
   const [showHealthModal, setShowHealthModal] = useState(false);
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(getStoredWeightUnit());
+
+  const handleUnitChange = (unit: WeightUnit) => {
+    setWeightUnit(unit);
+    setStoredWeightUnit(unit);
+  };
 
   if (!bovine) {
     return (
@@ -169,7 +182,7 @@ export function BovineDetail() {
             {bovine.weight && (
               <>
                 <span>•</span>
-                <span>{bovine.weight} kg</span>
+                <span>{formatWeightFromKg(bovine.weight, weightUnit)}</span>
               </>
             )}
           </div>
@@ -216,7 +229,9 @@ export function BovineDetail() {
                 { label: "Status", value: status.text },
                 { label: "Gênero", value: isFemale ? "Fêmea" : "Macho" },
                 { label: "Raça", value: bovine.breed || "—" },
-                { label: "Peso", value: bovine.weight ? `${bovine.weight} kg` : "—" },
+                { label: "Peso", value: bovine.weight
+                  ? formatWeightFromKg(bovine.weight, weightUnit)
+                  : "—" },
                 { label: "Nascimento", value: new Date(bovine.birth).toLocaleDateString("pt-BR") },
                 { label: "Idade", value: age },
                 { label: "Rebanho", value: herd?.name || "—" },
@@ -259,7 +274,7 @@ export function BovineDetail() {
                   <Plus size={14} /> Registrar
                 </button>
               </div>
-              <WeightChart records={weightRecords} />
+              <WeightChart records={weightRecords} unit={weightUnit} onUnitChange={handleUnitChange} />
             </div>
 
             {/* Weight records list */}
@@ -276,7 +291,7 @@ export function BovineDetail() {
                     >
                       <div>
                         <span className="text-sm font-semibold text-neutral-800 dark:text-white">
-                          {r.weight} kg
+                          {formatWeightFromKg(r.weight, weightUnit)}
                         </span>
                         <span className="text-xs text-neutral-400 dark:text-neutral-500 ml-2">
                           {new Date(r.recordedAt).toLocaleDateString("pt-BR")}

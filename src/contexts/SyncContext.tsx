@@ -604,6 +604,13 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Auto-sync when active farm changes
+  useEffect(() => {
+    if (activeFarm && navigator.onLine) {
+      syncNow();
+    }
+  }, [activeFarm?.id]);
+
   return (
     <SyncContext.Provider
       value={{ isOnline, isSyncing, pendingCount, syncNow }}

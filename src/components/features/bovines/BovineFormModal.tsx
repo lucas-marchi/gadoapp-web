@@ -6,10 +6,45 @@ import { useModals } from '../../../contexts/ModalContext';
 import { useSync } from '../../../contexts/SyncContext';
 import { db } from '../../../db/db';
 import { bovineService, type BovineDTO } from '../../../services/bovineService';
+import {
+  type WeightUnit,
+  getStoredWeightUnit,
+  setStoredWeightUnit,
+  inputToKg,
+} from '../../../lib/weightUtils';
 import { Input } from '../../ui/Input';
 import { Label } from '../../ui/Label';
 import { Select } from '../../ui/Select';
 import { Textarea } from '../../ui/Textarea';
+
+const BREED_CATALOG = [
+  "Nelore",
+  "Angus",
+  "Brahman",
+  "Hereford",
+  "Gir",
+  "Girolando",
+  "Guzerá",
+  "Tabapuã",
+  "Senepol",
+  "Charolês",
+  "Simental",
+  "Limousin",
+  "Red Angus",
+  "Brangus",
+  "Canchim",
+  "Bonsmara",
+  "Sindi",
+  "Holandesa",
+  "Jersey",
+  "Pardo-Suíço",
+  "Indubrasil",
+  "Caracu",
+  "Pantaneiro",
+  "Crioulo Lageano",
+  "Anelorado",
+  "Mestiço",
+];
 
 export function BovineFormModal() {
   const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData } = useModals();
@@ -18,6 +53,13 @@ export function BovineFormModal() {
   const allBovines = useLiveQuery(() => db.bovines.filter(b => b.active !== false).toArray());
   const potentialMoms = allBovines?.filter(b => b.gender === 'FEMEA' && b.id !== bovineEditingId) || [];
   const potentialDads = allBovines?.filter(b => b.gender === 'MACHO' && b.id !== bovineEditingId) || [];
+
+  const [weightUnit, setWeightUnit] = useState<WeightUnit>(getStoredWeightUnit());
+
+  const handleWeightUnitChange = (unit: WeightUnit) => {
+    setWeightUnit(unit);
+    setStoredWeightUnit(unit);
+  };
 
 
   const [formData, setFormData] = useState({
@@ -80,7 +122,9 @@ export function BovineFormModal() {
         status: formData.status,
         gender: formData.gender,
         breed: formData.breed,
-        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        weight: formData.weight
+          ? inputToKg(parseFloat(formData.weight), weightUnit)
+          : undefined,
         birth: new Date(formData.birth).toISOString(),
         description: formData.description,
         herdId: parseInt(formData.herdId),
@@ -183,24 +227,56 @@ export function BovineFormModal() {
                 <Label>Raça</Label>
                 <Input
                   type="text"
+                  list="breed-catalog"
                   value={formData.breed}
                   onChange={(e) =>
                     setFormData({ ...formData, breed: e.target.value })
                   }
-                  placeholder="Ex: Nelore"
+                  placeholder="Digite ou selecione..."
                 />
+                <datalist id="breed-catalog">
+                  {BREED_CATALOG.map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
               </div>
 
               {/* Peso */}
               <div>
-                <Label>Peso (kg)</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="mb-0">Peso</Label>
+                  <div className="flex items-center bg-neutral-100 dark:bg-neutral-700 rounded-lg p-0.5">
+                    <button
+                      type="button"
+                      onClick={() => handleWeightUnitChange('kg')}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
+                        weightUnit === 'kg'
+                          ? 'bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm'
+                          : 'text-neutral-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      Kg
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleWeightUnitChange('arroba')}
+                      className={`px-2 py-0.5 rounded text-[11px] font-semibold transition-all ${
+                        weightUnit === 'arroba'
+                          ? 'bg-white dark:bg-neutral-600 text-neutral-800 dark:text-white shadow-sm'
+                          : 'text-neutral-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      @
+                    </button>
+                  </div>
+                </div>
                 <Input
                   type="number"
                   value={formData.weight}
                   onChange={(e) =>
                     setFormData({ ...formData, weight: e.target.value })
                   }
-                  placeholder="0.0"
+                  placeholder={weightUnit === 'arroba' ? '0.00 @' : '0.0 kg'}
                 />
               </div>
             </div>

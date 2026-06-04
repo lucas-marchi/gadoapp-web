@@ -102,39 +102,58 @@ export function Bovines() {
                 </p>
               </div>
             ) : (
-              bovines.map((bovine) => (
-                <DataCard
-                  key={bovine.id}
-                  title={bovine.name}
-                  subtitle={
-                    <div className="flex flex-wrap gap-2">
-                      <span className="bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded text-neutral-600 dark:text-neutral-300">
-                        {getHerdName(bovine.herdId)}
-                      </span>
-                      <span>{bovine.breed || "Sem raça"}</span>
-                      <span>•</span>
-                      <span>{bovine.status}</span>
-                    </div>
-                  }
-                  avatarChar={bovine.name.charAt(0)}
-                  avatarColorClass={
-                    bovine.gender === "MACHO"
-                      ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
-                      : "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
-                  }
-                  status={bovine.syncStatus}
-                  selectable={isSelectionMode}
-                  isSelected={selection.selectedIds.includes(bovine.id!)}
-                  onClick={() => navigate(`/bovines/${bovine.id}`)}
-                  onSelect={() => selection.toggle(bovine.id!)}
-                  onLongPress={() => handleLongPress(bovine.id!)}
-                  onEdit={() => openBovineModal(bovine.id, bovine)}
-                  onDelete={() =>
-                    bovine.id && requestDelete(bovine.id, bovine.name)
-                  }
-                  variant="secondary"
-                />
-              ))
+              bovines.map((bovine) => {
+                const isDead = bovine.status === "MORTO";
+                const isSold = bovine.status === "VENDIDO";
+                const isInactive = isDead || isSold;
+
+                const statusBadge = isDead
+                  ? "bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400"
+                  : isSold
+                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                    : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+
+                const statusLabel = isDead ? "Morto" : isSold ? "Vendido" : "Vivo";
+
+                return (
+                  <div key={bovine.id} className={isInactive ? "opacity-60" : ""}>
+                    <DataCard
+                      title={bovine.name}
+                      subtitle={
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="bg-neutral-100 dark:bg-neutral-700 px-2 py-0.5 rounded text-neutral-600 dark:text-neutral-300">
+                            {getHerdName(bovine.herdId)}
+                          </span>
+                          <span>{bovine.breed || "Sem raça"}</span>
+                          <span>•</span>
+                          <span className={`px-1.5 py-0.5 rounded text-[11px] font-medium ${statusBadge}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                      }
+                      avatarChar={bovine.name.charAt(0)}
+                      avatarColorClass={
+                        isInactive
+                          ? "bg-neutral-100 text-neutral-400 dark:bg-neutral-700 dark:text-neutral-500"
+                          : bovine.gender === "MACHO"
+                            ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                            : "bg-pink-50 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400"
+                      }
+                      status={bovine.syncStatus}
+                      selectable={isSelectionMode}
+                      isSelected={selection.selectedIds.includes(bovine.id!)}
+                      onClick={() => navigate(`/bovines/${bovine.id}`)}
+                      onSelect={() => selection.toggle(bovine.id!)}
+                      onLongPress={() => handleLongPress(bovine.id!)}
+                      onEdit={() => openBovineModal(bovine.id, bovine)}
+                      onDelete={() =>
+                        bovine.id && requestDelete(bovine.id, bovine.name)
+                      }
+                      variant="secondary"
+                    />
+                  </div>
+                );
+              })
             )}
           </div>
         )}

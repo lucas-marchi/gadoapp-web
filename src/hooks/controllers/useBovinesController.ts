@@ -24,7 +24,7 @@ export function useBovinesController() {
   const { syncNow } = useSync();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  const [filters, setFilters] = useState({ search: "", herdId: searchParams.get("herdId") || "", status: "", gender: "" });
+  const [filters, setFilters] = useState({ search: "", herdId: searchParams.get("herdId") || "", status: searchParams.get("status") || "VIVO", gender: "" });
   
   const bovines = useLiveQuery(() => bovineService.list(filters), [filters]);
   const herds = useLiveQuery(() => db.herds.filter((h) => h.active !== false).toArray());
