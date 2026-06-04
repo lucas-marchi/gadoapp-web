@@ -23,6 +23,8 @@ export interface Bovine {
   serverHerdId?: number;
   momId?: number;
   dadId?: number;
+  serverMomId?: number;
+  serverDadId?: number;
   active: boolean;
   updatedAt: string;
   syncStatus: 'synced' | 'created' | 'updated' | 'deleted';

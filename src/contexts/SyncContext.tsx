@@ -10,7 +10,6 @@ import {
 import { db } from "../db/db";
 import { api } from "../lib/axios";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Check } from "lucide-react";
 import { useFarm } from "./FarmContext";
 
 interface SyncContextType {
@@ -27,6 +26,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { activeFarm } = useFarm();
+  const activeFarmRef = useRef(activeFarm);
+
+  // Keep the ref always in sync with current state
+  useEffect(() => {
+    activeFarmRef.current = activeFarm;
+  }, [activeFarm]);
 
   const pendingHerds = useLiveQuery(() =>
     db.herds.where("syncStatus").notEqual("synced").toArray(),
@@ -35,11 +40,16 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const pendingCount = pendingHerds?.length || 0;
 
   const syncNow = useCallback(async () => {
-    if (!navigator.onLine || isSyncing || !activeFarm) return;
+    const farm = activeFarmRef.current;
+    if (!navigator.onLine || isSyncing || !farm) return;
 
     if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
 
     syncTimeoutRef.current = setTimeout(async () => {
+      // Snapshot the farmId at start — if it changes mid-sync, abort
+      const farmIdAtStart = activeFarmRef.current?.id;
+      if (!farmIdAtStart) return;
+
       setIsSyncing(true);
       try {
         // =================================================
@@ -59,7 +69,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             active: h.active,
           }));
 
-          await api.post("/sync/herds/push", { data: dtos }, { params: { farmId: activeFarm.id } });
+          await api.post("/sync/herds/push", { data: dtos }, { params: { farmId: farmIdAtStart } });
 
           await db.transaction("rw", db.herds, async () => {
             for (const herd of unsyncedHerds) {
@@ -78,7 +88,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         let lastSyncHerds = localStorage.getItem("last_sync_herds");
         if (countLocalHerds === 0) lastSyncHerds = null;
 
-        const paramsHerds = lastSyncHerds ? { since: lastSyncHerds, farmId: activeFarm.id } : { farmId: activeFarm.id };
+        const paramsHerds = lastSyncHerds ? { since: lastSyncHerds, farmId: farmIdAtStart } : { farmId: farmIdAtStart };
         const resHerds = await api.get("/sync/herds/pull", {
           params: paramsHerds,
         });
@@ -132,6 +142,12 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         // 2. BOVINOS (BOVINES)
         // =================================================
 
+        // Abort check: if farm changed mid-sync, stop
+        if (activeFarmRef.current?.id !== farmIdAtStart) {
+          console.warn("Farm changed during sync, aborting.");
+          return;
+        }
+
         const bovinesWithoutServerHerd = await db.bovines
           .filter((b) => !b.serverHerdId && !!b.herdId)
           .toArray();
@@ -178,7 +194,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/bovines/push", { data: dtos }, { params: { farmId: activeFarm.id } });
+          await api.post("/sync/bovines/push", { data: dtos }, { params: { farmId: farmIdAtStart } });
 
           await db.transaction("rw", db.bovines, async () => {
             for (const b of unsyncedBovines) {
@@ -202,7 +218,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
 
         const paramsBovines = lastSyncBovines ? { since: lastSyncBovines } : {};
         const resBovines = await api.get("/sync/bovines/pull", {
-          params: { ...paramsBovines, farmId: activeFarm.id },
+          params: { ...paramsBovines, farmId: farmIdAtStart },
         });
         const serverBovines = resBovines.data;
 
@@ -222,10 +238,6 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                   .where("serverId")
                   .equals(sb.herdId)
                   .first();
-                console.log(
-                  `Buscando rebanho local para serverId ${sb.herdId}:`,
-                  h,
-                );
                 if (h) localHerdId = h.id;
               }
 
@@ -254,19 +266,58 @@ export function SyncProvider({ children }: { children: ReactNode }) {
                 active: sb.active,
                 syncStatus: "synced" as const,
                 updatedAt: sb.updatedAt,
+                // Preserve server parent IDs for second-pass resolution
+                serverMomId: sb.momId || undefined,
+                serverDadId: sb.dadId || undefined,
               };
 
-              console.log("Pull Bovino:", sb.name, sb.id);
-              console.log("Target encontrado:", target);
-
               if (target) {
-                console.log("Atualizando target com serverId:", sb.id);
                 await db.bovines.update(target.id!, payload);
               } else {
                 if (sb.active) {
                   await db.bovines.add(payload);
-                  console.log("Boi após update:", Check);
                 }
+              }
+            }
+
+            // === SECOND PASS: resolve serverMomId/serverDadId → local momId/dadId ===
+            const allLocal = await db.bovines.toArray();
+            const serverIdToLocalId = new Map<number, number>();
+            for (const b of allLocal) {
+              if (b.serverId && b.id) {
+                serverIdToLocalId.set(b.serverId, b.id);
+              }
+            }
+
+            for (const b of allLocal) {
+              let needsUpdate = false;
+              const updates: Partial<{ momId: number | undefined; dadId: number | undefined }> = {};
+
+              if (b.serverMomId) {
+                const localMomId = serverIdToLocalId.get(b.serverMomId);
+                if (localMomId && b.momId !== localMomId) {
+                  updates.momId = localMomId;
+                  needsUpdate = true;
+                }
+              } else if (b.momId) {
+                // Server has no parent but local does — clear it
+                updates.momId = undefined;
+                needsUpdate = true;
+              }
+
+              if (b.serverDadId) {
+                const localDadId = serverIdToLocalId.get(b.serverDadId);
+                if (localDadId && b.dadId !== localDadId) {
+                  updates.dadId = localDadId;
+                  needsUpdate = true;
+                }
+              } else if (b.dadId) {
+                updates.dadId = undefined;
+                needsUpdate = true;
+              }
+
+              if (needsUpdate && b.id) {
+                await db.bovines.update(b.id, updates);
               }
             }
           });
@@ -276,6 +327,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         // =================================================
         // 3. REGISTROS DE PESO (WEIGHT RECORDS)
         // =================================================
+
+        if (activeFarmRef.current?.id !== farmIdAtStart) return;
 
         // 3.1 Resolve server IDs for bovines
         const allBovinesForWR = await db.bovines.toArray();
@@ -300,7 +353,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/weight-records/push", { data: wrDtos }, { params: { farmId: activeFarm.id } });
+          await api.post("/sync/weight-records/push", { data: wrDtos }, { params: { farmId: farmIdAtStart } });
 
           await db.transaction("rw", db.weightRecords, async () => {
             for (const wr of unsyncedWeightRecords) {
@@ -319,7 +372,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalWR === 0 || unsyncedWeightRecords.length > 0) lastSyncWR = null;
 
         const paramsWR = lastSyncWR ? { since: lastSyncWR } : {};
-        const resWR = await api.get("/sync/weight-records/pull", { params: { ...paramsWR, farmId: activeFarm.id } });
+        const resWR = await api.get("/sync/weight-records/pull", { params: { ...paramsWR, farmId: farmIdAtStart } });
         const serverWRs = resWR.data;
 
         if (serverWRs.length > 0) {
@@ -375,6 +428,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         // 4. REGISTROS DE NASCIMENTO (BIRTH RECORDS)
         // =================================================
 
+        if (activeFarmRef.current?.id !== farmIdAtStart) return;
+
         // 4.1 PUSH BIRTH RECORDS
         const unsyncedBirthRecords = await db.birthRecords
           .where("syncStatus")
@@ -396,7 +451,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/birth-records/push", { data: brDtos }, { params: { farmId: activeFarm.id } });
+          await api.post("/sync/birth-records/push", { data: brDtos }, { params: { farmId: farmIdAtStart } });
 
           await db.transaction("rw", db.birthRecords, async () => {
             for (const br of unsyncedBirthRecords) {
@@ -415,7 +470,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalBR === 0 || unsyncedBirthRecords.length > 0) lastSyncBR = null;
 
         const paramsBR = lastSyncBR ? { since: lastSyncBR } : {};
-        const resBR = await api.get("/sync/birth-records/pull", { params: { ...paramsBR, farmId: activeFarm.id } });
+        const resBR = await api.get("/sync/birth-records/pull", { params: { ...paramsBR, farmId: farmIdAtStart } });
         const serverBRs = resBR.data;
 
         if (serverBRs.length > 0) {
@@ -476,6 +531,8 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         // 5. REGISTROS DE SAÚDE (HEALTH RECORDS)
         // =================================================
 
+        if (activeFarmRef.current?.id !== farmIdAtStart) return;
+
         // 5.1 PUSH HEALTH RECORDS
         const unsyncedHealthRecords = await db.healthRecords
           .where("syncStatus")
@@ -500,7 +557,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
             };
           });
 
-          await api.post("/sync/health-records/push", { data: hrDtos }, { params: { farmId: activeFarm.id } });
+          await api.post("/sync/health-records/push", { data: hrDtos }, { params: { farmId: farmIdAtStart } });
 
           await db.transaction("rw", db.healthRecords, async () => {
             for (const hr of unsyncedHealthRecords) {
@@ -519,7 +576,7 @@ export function SyncProvider({ children }: { children: ReactNode }) {
         if (countLocalHR === 0 || unsyncedHealthRecords.length > 0) lastSyncHR = null;
 
         const paramsHR = lastSyncHR ? { since: lastSyncHR } : {};
-        const resHR = await api.get("/sync/health-records/pull", { params: { ...paramsHR, farmId: activeFarm.id } });
+        const resHR = await api.get("/sync/health-records/pull", { params: { ...paramsHR, farmId: farmIdAtStart } });
         const serverHRs = resHR.data;
 
         if (serverHRs.length > 0) {

@@ -10,18 +10,6 @@ export function WaveBackground({ className, ...props }: ComponentProps<'div'>) {
                 preserveAspectRatio="none"
                 xmlns="http://www.w3.org/2000/svg"
             >
-                {/* 
-           Layout Fix: 
-           - Removed -left-[50%]. Now using left-0. 
-           - Wrapper is 200% width. Animation slides -50% (one full screen width).
-           - This ensures strictly seamless looping of the two identical wave cycles.
-           
-           Height Adjustment:
-           - Restored Y values to ~100-160 range to make waves looking "tall" again.
-           
-           Animation:
-           - Ultra slow speeds (60s-120s).
-        */}
 
                 {/* Layer 1: Secondary - Slowest, Background */}
                 <path
