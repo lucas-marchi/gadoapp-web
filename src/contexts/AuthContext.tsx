@@ -4,6 +4,8 @@ import { db } from '../db/db';
 interface UserData {
   name: string;
   email: string;
+  subscriptionStatus?: string;
+  stripePriceId?: string;
 }
 
 interface AuthContextType {

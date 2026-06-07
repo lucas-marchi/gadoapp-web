@@ -44,43 +44,6 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "invites", label: "Convites", icon: Mail },
 ];
 
-const PLANS = [
-  {
-    id: "free",
-    name: "Gratuito",
-    price: "R$ 0",
-    features: ["1 propriedade", "50 bovinos", "1 rebanho", "Relatórios básicos"],
-    current: true,
-  },
-  {
-    id: "producer",
-    name: "Produtor",
-    price: "R$ 49,90",
-    period: "/mês",
-    features: [
-      "3 propriedades",
-      "Bovinos ilimitados",
-      "Relatórios PDF",
-      "Exportação CSV",
-      "Suporte por email",
-    ],
-    highlighted: true,
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise",
-    price: "R$ 149,90",
-    period: "/mês",
-    features: [
-      "Propriedades ilimitadas",
-      "Membros ilimitados",
-      "Relatórios avançados",
-      "API de integração",
-      "Suporte prioritário",
-    ],
-  },
-];
-
 const ROLE_CONFIG: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   OWNER: { label: "Proprietário", icon: Crown, color: "text-amber-500" },
   ADMIN: { label: "Administrador", icon: Shield, color: "text-blue-500" },
@@ -107,6 +70,7 @@ export function Profile() {
   const [inviteFarmId, setInviteFarmId] = useState<number | null>(null);
 
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
+  const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
 
   useEffect(() => {
     loadProfile();
@@ -185,6 +149,66 @@ export function Profile() {
       toast.error("Erro ao recusar convite.");
     }
   };
+
+  const handleSubscribe = async (priceId: string) => {
+    setIsSubscribing(priceId);
+    try {
+      const response = await api.post("/v1/subscriptions/checkout", {
+        priceId,
+        successUrl: `${window.location.origin}/profile?success=true`,
+        cancelUrl: `${window.location.origin}/profile?canceled=true`,
+      });
+      if (response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (e: any) {
+      toast.error("Erro ao iniciar assinatura. Tente novamente.");
+    } finally {
+      setIsSubscribing(null);
+    }
+  };
+
+  const PLANS = [
+    {
+      id: "free",
+      name: "Gratuito",
+      price: "R$ 0",
+      features: ["1 propriedade", "50 bovinos", "1 rebanho", "Relatórios básicos"],
+      current: !user?.subscriptionStatus || user?.subscriptionStatus === "canceled",
+      priceId: "",
+    },
+    {
+      id: "producer",
+      name: "Produtor",
+      price: "R$ 49,90",
+      period: "/mês",
+      features: [
+        "3 propriedades",
+        "Bovinos ilimitados",
+        "Relatórios PDF",
+        "Exportação CSV",
+        "Suporte por email",
+      ],
+      highlighted: true,
+      current: user?.subscriptionStatus === "active" && user?.stripePriceId === "price_1TfTGmKHCIRT9fmkCYZ9DwXd",
+      priceId: "price_1TfTGmKHCIRT9fmkCYZ9DwXd",
+    },
+    {
+      id: "enterprise",
+      name: "Enterprise",
+      price: "R$ 149,90",
+      period: "/mês",
+      features: [
+        "Propriedades ilimitadas",
+        "Membros ilimitados",
+        "Relatórios avançados",
+        "API de integração",
+        "Suporte prioritário",
+      ],
+      current: user?.subscriptionStatus === "active" && user?.stripePriceId === "price_1TfTHWKHCIRT9fmkxY5wbWeD",
+      priceId: "price_1TfTHWKHCIRT9fmkxY5wbWeD",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
@@ -412,6 +436,14 @@ export function Profile() {
         {activeTab === "subscription" && (
           <div className="space-y-6">
             <h2 className="text-lg font-bold text-neutral-800 dark:text-white">Planos</h2>
+            
+            {user?.subscriptionStatus === "active" && (
+               <div className="bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400 p-4 rounded-xl flex items-center gap-3 font-medium">
+                 <Check size={20} />
+                 Você tem uma assinatura ativa!
+               </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {PLANS.map((plan) => (
                 <div
@@ -459,15 +491,18 @@ export function Profile() {
                       Plano Atual
                     </div>
                   ) : (
-                    <button className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-primary-200 dark:shadow-none active:scale-[0.98]">
-                      Assinar
+                    <button 
+                      onClick={() => handleSubscribe(plan.priceId)}
+                      disabled={isSubscribing === plan.priceId}
+                      className="w-full flex justify-center items-center gap-2 py-2.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-60 text-white rounded-xl text-sm font-medium transition-colors shadow-lg shadow-primary-200 dark:shadow-none active:scale-[0.98]">
+                      {isSubscribing === plan.priceId ? <Loader2 size={16} className="animate-spin" /> : "Assinar"}
                     </button>
                   )}
                 </div>
               ))}
             </div>
             <p className="text-xs text-center text-neutral-400 dark:text-neutral-500">
-              A integração com pagamento será ativada em breve via Stripe.
+              Pagamentos seguros processados pelo Stripe.
             </p>
           </div>
         )}
