@@ -8,9 +8,16 @@ import { ConfirmModal } from "../components/ui/ConfirmModal";
 import { Checkbox } from "../components/ui/Checkbox";
 import { useNavigate } from "react-router-dom";
 
+import { useAuth } from "../contexts/AuthContext";
+import { UpgradeModal } from "../components/UpgradeModal";
+import { useState } from "react";
+
 export function Herds() {
   const { openHerdModal } = useModals();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
 
   const {
     herds,
@@ -22,6 +29,17 @@ export function Herds() {
     deleteCattle,
     setDeleteCattle,
   } = useHerdsController();
+
+  const handleOpenHerdModal = () => {
+    if (user?.limits && herds) {
+      if (herds.length >= user.limits.maxHerdsPerFarm) {
+        setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxHerdsPerFarm} rebanho(s) para a propriedade no seu plano atual.`);
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+    openHerdModal();
+  };
 
   return (
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 font-sans pb-24 transition-colors duration-300">
@@ -73,7 +91,7 @@ export function Herds() {
       </main>
 
       <button
-        onClick={() => openHerdModal()}
+        onClick={handleOpenHerdModal}
         className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-primary-600 hover:bg-primary-500 text-white rounded-full shadow-lg shadow-primary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
       >
         <Plus size={28} />
@@ -98,6 +116,12 @@ export function Herds() {
           description="Os animais serão permanentemente removidos. Caso contrário, ficarão sem rebanho."
         />
       </ConfirmModal>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        message={upgradeMessage}
+      />
     </div>
   );
 }

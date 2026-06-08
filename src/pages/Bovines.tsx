@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { UpgradeModal } from "../components/UpgradeModal";
 import { useModals } from "../contexts/ModalContext";
 import { useBovinesController } from "../hooks/controllers/useBovinesController";
 import { MobileHeader } from "../components/layout/MobileHeader";
@@ -14,6 +16,7 @@ import { MoveBovinesModal } from "../components/features/bovines/MoveBovinesModa
 export function Bovines() {
   const { openBovineModal } = useModals();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const {
     bovines,
@@ -33,6 +36,19 @@ export function Bovines() {
   } = useBovinesController();
 
   const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
+
+  const handleOpenBovineModal = () => {
+    if (user?.limits && bovines) {
+      if (bovines.length >= user.limits.maxBovinesPerFarm) {
+        setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxBovinesPerFarm} bovino(s) na propriedade atual.`);
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+    openBovineModal();
+  };
 
   useEffect(() => {
     if (selection.selectedIds.length > 0) setIsSelectionMode(true);
@@ -161,7 +177,7 @@ export function Bovines() {
 
       {!isSelectionMode && (
         <button
-          onClick={() => openBovineModal()}
+          onClick={handleOpenBovineModal}
           className="md:hidden fixed bottom-24 right-6 w-14 h-14 bg-secondary-600 hover:bg-secondary-500 text-white rounded-full shadow-lg shadow-secondary-600/30 flex items-center justify-center active:scale-90 transition-transform z-20"
         >
           <Plus size={28} />
@@ -201,6 +217,12 @@ export function Bovines() {
         onClose={closeModals}
         onConfirm={batchMove}
         count={selection.selectedIds.length}
+      />
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        message={upgradeMessage}
       />
     </div>
   );

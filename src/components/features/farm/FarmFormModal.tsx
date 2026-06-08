@@ -6,6 +6,7 @@ import { Select } from "../../ui/Select";
 import { api } from "../../../lib/axios";
 import { toast } from "sonner";
 import type { Farm } from "../../../contexts/FarmContext";
+import { useModals } from "../../../contexts/ModalContext";
 
 interface FarmFormModalProps {
   farm: Farm | null; // null = create, Farm = edit
@@ -19,6 +20,7 @@ const STATES = [
 ];
 
 export function FarmFormModal({ farm, onClose, onSaved }: FarmFormModalProps) {
+  const { triggerUpgradeModal } = useModals();
   const [name, setName] = useState(farm?.name || "");
   const [ie, setIe] = useState(farm?.inscricaoEstadual || "");
   const [city, setCity] = useState(farm?.city || "");
@@ -52,8 +54,13 @@ export function FarmFormModal({ farm, onClose, onSaved }: FarmFormModalProps) {
         toast.success("Propriedade criada!");
       }
       onSaved();
-    } catch {
-      toast.error("Erro ao salvar propriedade.");
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        onClose(); // Fecha o modal de fazenda
+        triggerUpgradeModal(error.response?.data?.error || "Você atingiu o limite de propriedades do seu plano atual.");
+      } else {
+        toast.error("Erro ao salvar propriedade.");
+      }
     } finally {
       setIsSaving(false);
     }

@@ -19,6 +19,12 @@ interface ModalContextType {
   openBovineDetails: (bovine: any) => void;
   closeBovineDetails: () => void;
   selectedBovine: any | null;
+
+  // Upgrade Modal
+  isUpgradeModalOpen: boolean;
+  upgradeMessage: string;
+  triggerUpgradeModal: (message: string) => void;
+  closeUpgradeModal: () => void;
 }
 
 const ModalContext = createContext<ModalContextType>({} as ModalContextType);
@@ -69,11 +75,28 @@ export function ModalProvider({ children }: { children: ReactNode }) {
     setBovineInitialData(null);
   };
 
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState('');
+
+  const triggerUpgradeModal = (message: string) => {
+    setUpgradeMessage(message);
+    setIsUpgradeModalOpen(true);
+    // Optionally close other modals to make it stand out
+    setIsHerdModalOpen(false);
+    setIsBovineModalOpen(false);
+  };
+
+  const closeUpgradeModal = () => {
+    setIsUpgradeModalOpen(false);
+    setUpgradeMessage('');
+  };
+
   return (
     <ModalContext.Provider value={{
       isHerdModalOpen, openHerdModal, closeHerdModal, herdEditingId, herdInitialData,
       isBovineModalOpen, openBovineModal, closeBovineModal, bovineEditingId, bovineInitialData,
       isBovineDetailsOpen, openBovineDetails, closeBovineDetails, selectedBovine,
+      isUpgradeModalOpen, upgradeMessage, triggerUpgradeModal, closeUpgradeModal
     }}>
       {children}
     </ModalContext.Provider>

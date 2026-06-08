@@ -2,14 +2,18 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useModals } from '../../../contexts/ModalContext';
 import { useSync } from '../../../contexts/SyncContext';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useFarm } from '../../../contexts/FarmContext';
 import { toast } from 'sonner';
 import { herdService } from '../../../services/herdService';
 import { Input } from '../../ui/Input';
 import { Label } from '../../ui/Label';
 
 export function HerdFormModal() {
-  const { isHerdModalOpen, closeHerdModal, herdEditingId, herdInitialData } = useModals();
+  const { isHerdModalOpen, closeHerdModal, herdEditingId, herdInitialData, triggerUpgradeModal } = useModals();
   const { syncNow } = useSync();
+  const { user } = useAuth();
+  const { activeFarm } = useFarm();
   const [name, setName] = useState('');
 
   useEffect(() => {
@@ -27,6 +31,13 @@ export function HerdFormModal() {
     if (!name.trim()) {
       toast.error("Nome obrigatório");
       return;
+    }
+
+    if (!herdEditingId && user?.limits && activeFarm) {
+      if (activeFarm.herdCount >= user.limits.maxHerdsPerFarm) {
+        triggerUpgradeModal(`Você atingiu o limite de ${user.limits.maxHerdsPerFarm} rebanho(s) para a propriedade no seu plano atual.`);
+        return;
+      }
     }
 
     try {

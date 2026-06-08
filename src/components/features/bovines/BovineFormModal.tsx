@@ -6,6 +6,8 @@ import { useModals } from '../../../contexts/ModalContext';
 import { useSync } from '../../../contexts/SyncContext';
 import { db } from '../../../db/db';
 import { bovineService, type BovineDTO } from '../../../services/bovineService';
+import { useAuth } from '../../../contexts/AuthContext';
+import { useFarm } from '../../../contexts/FarmContext';
 import {
   type WeightUnit,
   getStoredWeightUnit,
@@ -47,8 +49,10 @@ const BREED_CATALOG = [
 ];
 
 export function BovineFormModal() {
-  const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData } = useModals();
+  const { isBovineModalOpen, closeBovineModal, bovineEditingId, bovineInitialData, triggerUpgradeModal } = useModals();
   const { syncNow } = useSync();
+  const { user } = useAuth();
+  const { activeFarm } = useFarm();
   const herds = useLiveQuery(() => db.herds.filter(h => h.active !== false).toArray());
   const allBovines = useLiveQuery(() => db.bovines.filter(b => b.active !== false).toArray());
   const potentialMoms = allBovines?.filter(b => b.gender === 'FEMEA' && b.id !== bovineEditingId) || [];
@@ -114,6 +118,13 @@ export function BovineFormModal() {
     if (!formData.name.trim() || !formData.herdId) {
       toast.error("Preencha os campos obrigatórios");
       return;
+    }
+
+    if (!bovineEditingId && user?.limits && activeFarm) {
+      if (activeFarm.bovineCount >= user.limits.maxBovinesPerFarm) {
+        triggerUpgradeModal(`Você atingiu o limite de ${user.limits.maxBovinesPerFarm} bovino(s) para a propriedade no seu plano atual.`);
+        return;
+      }
     }
 
     try {

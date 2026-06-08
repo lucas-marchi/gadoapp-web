@@ -1,11 +1,21 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { db } from '../db/db';
+import { api } from '../lib/axios';
 
 interface UserData {
   name: string;
   email: string;
   subscriptionStatus?: string;
   stripePriceId?: string;
+  limits?: {
+    maxFarms: number;
+    maxHerdsPerFarm: number;
+    maxBovinesPerFarm: number;
+    maxInvitesPerFarm: number;
+  };
+  usage?: {
+    farms: number;
+  };
 }
 
 interface AuthContextType {
@@ -31,6 +41,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const [isLoading] = useState(false); 
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      api.get("/profile")
+        .then((res) => {
+          updateUser({
+            name: res.data.name,
+            subscriptionStatus: res.data.subscriptionStatus,
+            stripePriceId: res.data.stripePriceId,
+            limits: res.data.limits,
+            usage: res.data.usage,
+          });
+        })
+        .catch(console.error);
+    }
+  }, [isAuthenticated]);
 
   const login = (token: string, userData?: UserData) => {
     localStorage.setItem('gadoapp_token', token);

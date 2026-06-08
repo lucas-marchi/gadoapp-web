@@ -38,10 +38,9 @@ export function Login() {
 
   const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
 
-  const handleSocialLogin = (provider: "google" | "facebook") => {
-    // Mock handler - would integrate with OAuth flow here
-    toast.info(`Login com ${provider} em breve!`);
-  };
+  // const handleSocialLogin = (provider: "google" | "facebook") => {
+  //   toast.info(`Login com ${provider} em desenvolvimento`);
+  // };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

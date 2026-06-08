@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   User,
   MapPin,
@@ -26,6 +27,7 @@ import { api } from "../lib/axios";
 import { toast } from "sonner";
 import { FarmFormModal } from "../components/features/farm/FarmFormModal";
 import { InviteMemberModal } from "../components/features/farm/InviteMemberModal";
+import { UpgradeModal } from "../components/UpgradeModal";
 
 type Tab = "account" | "farms" | "subscription" | "invites";
 
@@ -53,8 +55,21 @@ const ROLE_CONFIG: Record<string, { label: string; icon: React.ElementType; colo
 export function Profile() {
   const { user, updateUser } = useAuth();
   const { farms, activeFarm, switchFarm, refreshFarms } = useFarm();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [activeTab, setActiveTab] = useState<Tab>("account");
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab") as Tab;
+    if (tabParam && ["account", "farms", "subscription", "invites"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState("");
@@ -69,6 +84,9 @@ export function Profile() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteFarmId, setInviteFarmId] = useState<number | null>(null);
 
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
+
   const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
   const [isSubscribing, setIsSubscribing] = useState<string | null>(null);
 
@@ -82,6 +100,13 @@ export function Profile() {
       const res = await api.get("/profile");
       setName(res.data.name || "");
       setPhone(res.data.phone || "");
+      updateUser({
+        name: res.data.name,
+        subscriptionStatus: res.data.subscriptionStatus,
+        stripePriceId: res.data.stripePriceId,
+        limits: res.data.limits,
+        usage: res.data.usage,
+      });
     } catch {
       // Use cached data
     }
@@ -228,7 +253,7 @@ export function Profile() {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => handleTabChange(tab.id)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all whitespace-nowrap flex-1 justify-center ${
                   isActive
                     ? "bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 shadow-sm"
@@ -328,6 +353,13 @@ export function Profile() {
               </h2>
               <button
                 onClick={() => {
+                  if (user?.limits && user?.usage) {
+                    if (user.usage.farms >= user.limits.maxFarms) {
+                      setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxFarms} propriedade(s) do seu plano.`);
+                      setShowUpgradeModal(true);
+                      return;
+                    }
+                  }
                   setEditingFarm(null);
                   setShowFarmModal(true);
                 }}
@@ -415,6 +447,14 @@ export function Profile() {
                           </button>
                           <button
                             onClick={() => {
+                              if (user?.limits) {
+                                const currentInvites = (farm.memberCount || 1) - 1; // Assuming owner is 1, rest are invites. This is an approximation on the frontend, backend has strict check.
+                                if (currentInvites >= user.limits.maxInvitesPerFarm) {
+                                  setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxInvitesPerFarm} convite(s) por propriedade no seu plano atual.`);
+                                  setShowUpgradeModal(true);
+                                  return;
+                                }
+                              }
                               setInviteFarmId(farm.id);
                               setShowInviteModal(true);
                             }}
@@ -624,6 +664,13 @@ export function Profile() {
           }}
         />
       )}
+
+      {/* UPGRADE MODAL */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        message={upgradeMessage}
+      />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useFarm } from '../../contexts/FarmContext';
 import { useTheme } from '../../hooks/ui/useTheme';
 import { useModals } from '../../contexts/ModalContext';
+import { UpgradeModal } from '../../components/UpgradeModal';
 
 export function Sidebar() {
   const location = useLocation();
@@ -14,6 +15,33 @@ export function Sidebar() {
   const { openHerdModal, openBovineModal } = useModals();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isFarmSelectorOpen, setIsFarmSelectorOpen] = useState(false);
+  const { user } = useAuth();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeMessage, setUpgradeMessage] = useState("");
+  // Local approximation for limits in sidebar since we might not have the full arrays loaded here cheaply, 
+  // actually, useFarm gives activeFarm. activeFarm has herdCount and bovineCount!
+  
+  const handleOpenHerdModal = () => {
+    if (user?.limits && activeFarm) {
+      if (activeFarm.herdCount >= user.limits.maxHerdsPerFarm) {
+        setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxHerdsPerFarm} rebanho(s) para a propriedade no seu plano atual.`);
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+    openHerdModal();
+  };
+
+  const handleOpenBovineModal = () => {
+    if (user?.limits && activeFarm) {
+      if (activeFarm.bovineCount >= user.limits.maxBovinesPerFarm) {
+        setUpgradeMessage(`Você atingiu o limite de ${user.limits.maxBovinesPerFarm} bovino(s) para a propriedade no seu plano atual.`);
+        setShowUpgradeModal(true);
+        return;
+      }
+    }
+    openBovineModal();
+  };
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -102,8 +130,8 @@ export function Sidebar() {
           <div className="absolute top-full left-2 right-2 mt-2 bg-white dark:bg-neutral-800 rounded-xl shadow-xl border border-neutral-100 dark:border-neutral-700 overflow-hidden z-50 animate-in slide-in-from-top-2 fade-in duration-200">
             <button
               onClick={() => {
-                openHerdModal();
                 setIsMenuOpen(false);
+                handleOpenHerdModal();
               }}
               className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-700 dark:text-neutral-200 transition-colors"
             >
@@ -112,8 +140,8 @@ export function Sidebar() {
             </button>
             <button
               onClick={() => {
-                openBovineModal();
                 setIsMenuOpen(false);
+                handleOpenBovineModal();
               }}
               className="w-full text-left px-4 py-3 hover:bg-neutral-50 dark:hover:bg-neutral-700 flex items-center gap-3 text-neutral-700 dark:text-neutral-200 transition-colors border-t border-neutral-100 dark:border-neutral-700"
             >
@@ -198,6 +226,12 @@ export function Sidebar() {
           <p className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">Seu manejo bovino</p>
         </div>
       </div>
+
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        message={upgradeMessage}
+      />
     </aside>
   );
 }
